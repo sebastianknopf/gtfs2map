@@ -1,4 +1,17 @@
 services:
   feedmap:
     build: .
-    env_file: .env
+    environment:
+      - GTFS_STATIC_URL
+      - GTFS_REALTIME_TRIP_UPDATES_URL
+      - GTFS_REALTIME_VEHICLE_POSITIONS_URL
+      - GTFS_REALTIME_SERVICE_ALERTS_URL
+      - FM_TEMPLATE_ID
+      - FM_TEMPLATE_TITLE
+      - FM_TEMPLATE_COLOR
+      - FM_TEMPLATE_CREDITS
+    volumes:
+      - ./view/${FM_TEMPLATE_ID}:/data/j2/input:ro
+      - ./output/${FM_TEMPLATE_ID}:/data/html/output:rw
+    ports:
+      - "8080:8080"

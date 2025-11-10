@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mkdir /data/
-
 echo -e "\n"
 echo '[1/3] Fetching GTFS data ...'
 echo $GTFS_STATIC_URL
