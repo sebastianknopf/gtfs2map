@@ -1,0 +1,16 @@
+{
+  "agencies": [
+    {
+      "agencyKey": "feedmap",
+      "path": "/data/gtfs.zip"
+    }
+  ],
+  "bufferSizeMeters": 400,
+  "coordinatePrecision": 5,
+  "outputType": "agency",
+  "outputFormat": "lines-and-stops",
+  "outputPath": "/data",
+  "overwriteExistingFiles": true,
+  "verbose": true,
+  "zipOutput": false
+}

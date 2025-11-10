@@ -1,0 +1,4 @@
+services:
+  feedmap:
+    build: .
+    env_file: .env
