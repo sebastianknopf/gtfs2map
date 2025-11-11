@@ -8,6 +8,7 @@ from geojson import Feature
 from jinja2 import Environment, Template, FileSystemLoader
 
 class JinjaRenderer:
+
     def __init__(self, template_dir: str, output_dir: str) -> None:
         self._template_directory: str = template_dir
         self._output_dir: str = output_dir
@@ -17,8 +18,23 @@ class JinjaRenderer:
         self._env.filters['text'] = self._text_filter
         self._env.filters['geojson'] = self._geojson_filter
         self._env.filters['properties'] = self._properties_filter
+        self._env.filters['safe'] = self._safe_filter
         
-        os.makedirs(self._output_dir, exist_ok=True)
+        if os.path.exists(self._output_dir):
+            for filename in os.listdir(self._output_dir):
+                absolute_filename: str = os.path.join(self._output_dir, filename)
+                try:
+                    if os.path.isfile(absolute_filename) or os.path.islink(absolute_filename):
+                        os.unlink(absolute_filename)
+                    elif os.path.isdir(absolute_filename):
+                        shutil.rmtree(absolute_filename)
+                except Exception:
+                    pass
+        else:
+            os.makedirs(self._output_dir, exist_ok=True)
+
+        self._auto_render_extensions = ['.html.j2', '.css.j2', '.js.j2', '.geojson.j2']
+        self._mandatory_render_filenames = ['index.html.j2', 'routes/route.html.j2']
 
     def render_file(self, context: dict, filename: str) -> str:
         template: Template = self._env.get_template(filename)
@@ -27,10 +43,39 @@ class JinjaRenderer:
         return rendered
     
     def render(self, context: dict) -> None:
-        """if os.path.exists(self._output_dir):
-            shutil.rmtree(self._output_dir)
-            os.makedirs(self._output_dir, exist_ok=True)"""
         
+        ###
+        # render mandatory files
+        ###
+
+        # index.html
+        rendered: str = self.render_file(context, 'index.html.j2')
+
+        index_output_file: str = os.path.join(self._output_dir, 'index.html')
+        with open(index_output_file, 'w', encoding='utf-8') as f:
+            f.write(rendered)
+
+        logging.info(f"Rendered: index.html [Mandatory]")
+
+        # routes/[route].html for each route
+        for route in context.get('routes').features:
+            rendered = self.render_file(
+                {**context, 'route': route}, 
+                'routes/route.html.j2'
+            )
+            
+            route_output_dir: str = os.path.join(self._output_dir, 'routes')
+            os.makedirs(route_output_dir, exist_ok=True)
+
+            route_output_file: str = os.path.join(route_output_dir, f"{self._safe_filter(route.properties['route_id'])}.html")
+            with open(route_output_file, 'w', encoding='utf-8') as f:
+                f.write(rendered)
+
+            logging.info(f"Rendered: {route_output_file} [Mandatory]")
+        
+        ###
+        # render everything else
+        ### 
         for root, dirs, files in os.walk(self._template_directory):
             relative_path: str = os.path.relpath(root, self._template_directory)
             if relative_path == '.':
@@ -42,8 +87,12 @@ class JinjaRenderer:
             for filename in files:
                 src_file: str = os.path.join(root, filename)
 
-                if filename.endswith('.html.j2') or filename.endswith('.css.j2') or filename.endswith('.js.j2'):
-                    rendered: str = self.render_file(context, os.path.join(relative_path, filename))
+                if any([filename.endswith(ext) for ext in self._auto_render_extensions]):
+                    relative_filename: str = os.path.join(relative_path, filename)
+                    if relative_filename in self._mandatory_render_filenames:
+                        continue
+                    
+                    rendered: str = self.render_file(context, relative_filename)
 
                     dest_file: str = os.path.join(
                         output_path, 
@@ -112,4 +161,15 @@ class JinjaRenderer:
                 return feature.properties
             else:
                 return feature
-    
+            
+    def _safe_filter(self, value: str) -> str:
+        value = value.replace('\\', '_')
+        value = value.replace('/', '_')
+        value = value.replace('&', '_')
+        value = value.replace('%', '_')
+        value = value.replace(':', '_')
+        value = value.replace('?', '_')
+        value = value.replace('#', '_')
+        value = value.replace('"', '_')
+
+        return value
