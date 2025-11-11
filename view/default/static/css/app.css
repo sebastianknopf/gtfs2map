@@ -1,0 +1,58 @@
+html, body {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+}
+
+header, footer {
+	flex: 0 0 auto;
+}
+
+header > a {
+	width: 40px !important;
+}
+
+main {
+	flex: 1 1 auto;
+	display: flex;
+	overflow: hidden;
+}
+
+aside {
+	width: 420px;
+	flex: 0 0 auto;
+	overflow-y: auto;
+}
+
+div#fm-app-map {
+	flex: 1 1 auto;
+}
+
+li.fm-route-item {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 15px;
+	cursor: pointer;
+}
+
+div.fm-route-name {
+	width: 46px;
+	height: 46px;
+	border-radius: 23px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	letter-spacing: -1px;
+	flex-shrink: 0;
+	font-weight: bold;
+}
+
+span.fm-route-desc {
+	display: inline-block;
+	max-width: 300px;
+}
