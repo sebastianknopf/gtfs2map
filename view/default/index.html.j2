@@ -1,7 +1,82 @@
 {% extends "layout.j2" %}
 
-{% block title %}FeedMap - Home{% endblock %}
+{% block title %}{{ FM_TEMPLATE_TITLE }}{% endblock %}
+
+{% block headline %}{{ FM_TEMPLATE_TITLE }}{% endblock %}
 
 {% block main %}
-<h1>This is a test ...</h1>
+<aside id="fm-app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
+    {% for agency in agencies.features %}
+        {% include "components/agency_section.j2" %}
+    {% endfor %}
+</aside>
+<div id="fm-app-map"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="static/js/maplibre.js"></script>
+<script src="static/js/app.js"></script>
+<script>
+    const routesGeojson = {{ routes|geojson }};
+    const stopsGeojson = {{ stops|geojson }};
+    
+    const map = new maplibregl.Map({
+		container: 'fm-app-map',
+		style: 'https://tiles.openfreemap.org/styles/positron',
+		center: [10.5, 51.0],
+		zoom: 8
+	});
+
+    map.on('load', function () {
+        map.addSource('routes', {
+            type: 'geojson',
+            data: routesGeojson
+        });
+
+        map.addSource('stops', {
+            type: 'geojson',
+            data: stopsGeojson
+        });
+
+        map.addLayer({
+            'id': 'route-lines-outline',
+            'type': 'line',
+            'source': 'routes',
+            'paint': {
+                'line-color': '#ffffff',
+                'line-width': 12
+            }
+        });
+        
+        map.addLayer({
+            'id': 'route-lines',
+            'type': 'line',
+            'source': 'routes',
+            'paint': {
+                'line-color': ['get', 'route_color'],
+                'line-width': 6
+            }
+        });
+
+        map.addLayer({
+            'id': 'stop-points',
+            'type': 'circle',
+            'source': 'stops',
+            'minzoom': 14,
+            'paint': {
+                'circle-radius': 6,
+                'circle-color': '#ccc',
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 2          
+            }
+        });
+
+        const bounds = getGeoJsonBounds(routesGeojson);
+        map.fitBounds(bounds, {
+            padding: 20,
+            duration: 2500,
+            easing(t) { return t; }
+        });
+    });
+</script>
 {% endblock %}

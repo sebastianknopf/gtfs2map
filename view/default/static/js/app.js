@@ -14,11 +14,17 @@ function hideMenu() {
 	document.getElementById('fm-action-close-menu').classList.add('w3-hide');
 }
 
-function initFeedMap(mapContainerId) {
-	const map = new maplibregl.Map({
-		container: mapContainerId,
-		style: 'https://tiles.openfreemap.org/styles/positron',
-		center: [8.5466048, 48.888177],
-		zoom: 14
-	});
+function getGeoJsonBounds(geojson) {
+    const bounds = new maplibregl.LngLatBounds();
+	
+    geojson.features.forEach(feature => {
+        const geom = feature.geometry;
+        if (geom.type === 'LineString') {
+            geom.coordinates.forEach(coord => bounds.extend(coord));
+        } else if (geom.type === 'MultiLineString') {
+            geom.coordinates.forEach(line => line.forEach(coord => bounds.extend(coord)));
+        }
+    });
+
+    return bounds;
 }

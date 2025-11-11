@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>{% block title %}FeedMap{% endblock %}</title>
+		<title>{% block title %}{{ FM_TEMPLATE_TITLE }}{% endblock %}</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1">
 		
 		<link rel="stylesheet" href="static/css/w3.css" />
@@ -16,11 +16,10 @@
 			<div class="w3-bar-item w3-hide-small">	
 				<img class="w3-image" src="static/img/logo.svg" width="40" height="40" />
 			</div>
-			<span class="w3-bar-item">FeedMap</span>
+			<span class="w3-bar-item">{% block headline %}{{ FM_TEMPLATE_TITLE }}{% endblock %}</span>
 		</header>
 		<main>
         {% block main %}
-            <h1>Empty FeedMap</h1>
         {% endblock %}
 		</main>
 		<footer class="w3-container w3-theme-light w3-center w3-opacity">
@@ -30,5 +29,7 @@
 			</p>
             {% endif %}
 		</footer>
+		{% block scripts %}
+		{% endblock %}
 	</body>
 </html>
