@@ -26,19 +26,22 @@ class JinjaRenderer:
         return rendered
     
     def render(self, context: dict) -> None:
+        """if os.path.exists(self._output_dir):
+            shutil.rmtree(self._output_dir)
+            os.makedirs(self._output_dir, exist_ok=True)"""
+        
         for root, dirs, files in os.walk(self._template_directory):
             relative_path: str = os.path.relpath(root, self._template_directory)
             if relative_path == '.':
                 relative_path = ''
 
-            output_path: str = os.path.join(self._output_dir, relative_path)
-            
+            output_path: str = os.path.join(self._output_dir, relative_path)                
             os.makedirs(output_path, exist_ok=True)
 
             for filename in files:
                 src_file: str = os.path.join(root, filename)
 
-                if filename.endswith('.j2'):
+                if filename.endswith('.html.j2') or filename.endswith('.css.j2') or filename.endswith('.js.j2'):
                     rendered: str = self.render_file(context, os.path.join(relative_path, filename))
 
                     dest_file: str = os.path.join(
@@ -51,7 +54,7 @@ class JinjaRenderer:
 
                     logging.info(f"Rendered: {dest_file}")
 
-                else:
+                elif not filename.endswith('.j2'):
                     dest_file = os.path.join(output_path, filename)
                     shutil.copy2(src_file, dest_file)
 
