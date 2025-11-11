@@ -14,6 +14,10 @@ function hideMenu() {
 	document.getElementById('fm-action-close-menu').classList.add('w3-hide');
 }
 
+function onRouteItemClick(routeId) {
+    window.location.href = `routes/${routeId}.html`;
+}
+
 function getGeoJsonBounds(geojson) {
     const bounds = new maplibregl.LngLatBounds();
 	

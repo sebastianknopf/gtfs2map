@@ -1,14 +1,14 @@
-<li class="w3-bar fm-route-item">
+<li class="w3-bar fm-route-item" data-route-id="{{ route|properties('route_id')|safe }}" onclick="onRouteItemClick(this.getAttribute('data-route-id'));">
     <div>
         {% set route_color = route|properties('route_color') %}
-        {% if route_color == none %}
+        {% if route_color is none %}
             {% set route_color = FM_TEMPLATE_COLOR %}
         {% endif %}
         {% set route_text_color = route|properties('route_text_color') %}
-        {% if route_text_color == none %}
+        {% if route_text_color is none %}
             {% set route_text_color = FM_TEMPLATE_COLOR|text(0) %}
         {% endif %}
-        {% if route|properties('route_short_name') != none %}
+        {% if route|properties('route_short_name') is not none %}
             <div class="w3-large fm-route-name" style="background-color:{{ route_color }};color:{{ route_text_color }}">{{ route|properties('route_short_name') }}</div>
         {% else %}
             <div class="w3-large fm-route-name" style="background-color:{{ route_color }};color:{{ route_text_color }}">{{ route|properties('route_short_name') }}</div>
@@ -23,7 +23,10 @@
             <span class="w3-large fm-route-desc">{{ route_desc }}</span>
         {% else %}
             <span class="w3-large">{{ route_long_name }}</span><br />
-			<span class="w3-medium w3-text-gray fm-route-desc">{{ route_desc }}</span>
+            <span class="w3-medium w3-text-gray fm-route-desc">{{ route_desc }}</span>
         {% endif %}
+    </div>
+    <div class="w3-hide" style="margin-left:auto;">
+        <img src="/static/img/alert.svg" width="24" height="24" />
     </div>
 </li>

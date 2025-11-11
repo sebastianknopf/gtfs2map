@@ -14,12 +14,10 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="static/js/maplibre.js"></script>
-<script src="static/js/app.js"></script>
+<script src="/static/js/maplibre.js"></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/data.js"></script>
 <script>
-    const routesGeojson = {{ routes|geojson }};
-    const stopsGeojson = {{ stops|geojson }};
-    
     const map = new maplibregl.Map({
 		container: 'fm-app-map',
 		style: 'https://tiles.openfreemap.org/styles/positron',
@@ -44,7 +42,11 @@
             'source': 'routes',
             'paint': {
                 'line-color': '#ffffff',
-                'line-width': 12
+                'line-width': 15
+            },
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
             }
         });
         
@@ -54,7 +56,11 @@
             'source': 'routes',
             'paint': {
                 'line-color': ['get', 'route_color'],
-                'line-width': 6
+                'line-width': 8
+            },
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
             }
         });
 
