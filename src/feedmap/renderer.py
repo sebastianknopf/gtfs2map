@@ -1,7 +1,9 @@
+import geojson
 import logging
 import os
 import shutil
 
+from geojson import Feature
 from jinja2 import Environment, Template, FileSystemLoader
 
 class JinjaRenderer:
@@ -12,6 +14,8 @@ class JinjaRenderer:
         self._env: Environment = Environment(loader=FileSystemLoader(self._template_directory))
         self._env.filters['shade'] = self._shade_filter
         self._env.filters['text'] = self._text_filter
+        self._env.filters['geojson'] = self._geojson_filter
+        self._env.filters['properties'] = self._properties_filter
         
         os.makedirs(self._output_dir, exist_ok=True)
 
@@ -78,3 +82,13 @@ class JinjaRenderer:
         brightness: float = (r * 299 + g * 587 + b * 114) / 1000
 
         return "#000000" if brightness > 140 else "#ffffff"
+    
+    def _geojson_filter(self, feature: Feature) -> str:
+        return geojson.dumps(feature)
+    
+    def _properties_filter(self, feature: Feature, propname: str = None) -> dict:
+        if propname is not None:
+            return feature.properties.get(propname, None)
+        else:
+            return feature.properties
+    
