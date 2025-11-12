@@ -5,13 +5,18 @@
             "label": "start-local-server",
             "type": "shell",
             "command": "docker run --rm -d -p 80:80 -v ${workspaceFolder}/output/${input:layoutId}:/usr/share/nginx/html --name feedmap-webserver nginx:alpine",
-            "problemMatcher": [],
-            "dependsOn": "stop-local-server"
+            "problemMatcher": []
         },
         {
             "label": "stop-local-server",
             "type": "shell",
             "command": "docker stop feedmap-webserver",
+            "problemMatcher": []
+        },
+        {
+            "label": "render",
+            "type": "shell",
+            "command": "docker compose run --rm --build feedmap render",
             "problemMatcher": []
         }
     ],
