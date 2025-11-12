@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "start-local-server",
+            "type": "shell",
+            "command": "docker run --rm -d -p 80:80 -v ${workspaceFolder}/output/${input:layoutId}:/usr/share/nginx/html --name feedmap-webserver nginx:alpine",
+            "problemMatcher": [],
+            "dependsOn": "stop-local-server"
+        },
+        {
+            "label": "stop-local-server",
+            "type": "shell",
+            "command": "docker stop feedmap-webserver",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "layoutId",
+            "type": "promptString",
+            "description": "Layout ID",
+            "default": "default"
+        }
+    ]
+}
