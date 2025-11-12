@@ -17,29 +17,19 @@
 {% endblock %}
 
 {% block main %}
-<aside id="fm-app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
+<aside id="app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
     <section>
-        {% set route_short_name = route|properties('route_short_name') %}
-        {% set route_long_name = route|properties('route_long_name') %}
-        {% set route_desc = route|properties('route_desc') %}
-        {% if route_short_name is not none and route_long_name is none %}
-        <h4 class="w3-margin">{{ route_short_name }}</h4>
-        {% elif route_short_name is none and route_long_name is not none %}
-        <h4 class="w3-margin">{{ route_long_name }}</h4>
-        {% else %}
-        <h4 class="w3-margin">{{ route_short_name }} | {{ route_long_name }}</h4>    
-        {% endif %}
-        {% if route_desc is not none %}
-        <span class="w3-medium w3-text-gray">{{ route_desc }}</span>
-        {% endif %}
+        <div class="w3-bar w3-padding-16 app-route-header">
+            {% include "components/route.j2" %}
+        </div>
     </section>
     <section>
         <div class="w3-container w3-padding-16">
             <h5>Aktuelle Informationen</h5>
-            <div class="fm-alerts-empty">
+            <div class="app-alerts-empty">
                 <span class="w3-medium w3-text-gray">Keine aktuellen Hinweise - Die Linie verkehrt planmäßig.</span>
             </div>
-            <div class="w3-hide fm-alerts-list">
+            <div class="w3-hide app-alerts-list">
 
             </div>
         </div>
@@ -50,7 +40,7 @@
         </div>
     </section>
 </aside>
-<div id="fm-app-map"></div>
+<div id="app-map"></div>
 {% endblock %}
 
 {% block scripts %}

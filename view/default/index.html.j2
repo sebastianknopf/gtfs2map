@@ -17,12 +17,12 @@
 {% endblock %}
 
 {% block main %}
-<aside id="fm-app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
+<aside id="app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
     {% for agency in agencies.features %}
         {% include "components/agency_section.j2" %}
     {% endfor %}
 </aside>
-<div id="fm-app-map"></div>
+<div id="app-map"></div>
 {% endblock %}
 
 {% block scripts %}
