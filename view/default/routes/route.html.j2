@@ -2,13 +2,63 @@
 
 {% block title %}{{ FM_TEMPLATE_TITLE }}{% endblock %}
 
-{% block headline %}{{ FM_TEMPLATE_TITLE }}{% endblock %}
+{%block header %}
+<div class="w3-bar-item w3-hide-small">	
+    <img class="w3-image" src="../static/img/logo.svg" width="40" height="40" />
+</div>
+<span class="w3-bar-item">{{ FM_TEMPLATE_TITLE }}</span>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="../static/css/w3.css" />
+<link rel="stylesheet" href="../static/css/w3-theme.css" />
+<link rel="stylesheet" href="../static/css/maplibre.css" />
+<link rel="stylesheet" href="../static/css/app.css" />
+{% endblock %}
 
 {% block main %}
 <aside id="fm-app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
-    <div class="w3-container">
-        <a class="w3-button w3-theme" href="/index.html">Zurück</a>
-    </div>
+    <section>
+        {% set route_short_name = route|properties('route_short_name') %}
+        {% set route_long_name = route|properties('route_long_name') %}
+        {% set route_desc = route|properties('route_desc') %}
+        {% if route_short_name is not none and route_long_name is none %}
+        <h4 class="w3-margin">{{ route_short_name }}</h4>
+        {% elif route_short_name is none and route_long_name is not none %}
+        <h4 class="w3-margin">{{ route_long_name }}</h4>
+        {% else %}
+        <h4 class="w3-margin">{{ route_short_name }} | {{ route_long_name }}</h4>    
+        {% endif %}
+        {% if route_desc is not none %}
+        <span class="w3-medium w3-text-gray">{{ route_desc }}</span>
+        {% endif %}
+    </section>
+    <section>
+        <div class="w3-container w3-padding-16">
+            <h5>Aktuelle Informationen</h5>
+            <div class="fm-alerts-empty">
+                <span class="w3-medium w3-text-gray">Keine aktuellen Hinweise - Die Linie verkehrt planmäßig.</span>
+            </div>
+            <div class="w3-hide fm-alerts-list">
+
+            </div>
+        </div>
+    </section>
+    <section>
+        <div class="w3-container w3-padding-16">
+            <a class="w3-button w3-block w3-theme" href="/index.html">Zurück</a>
+        </div>
+    </section>
 </aside>
 <div id="fm-app-map"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="../static/js/data.js"></script>
+<script src="../static/js/maplibre.js"></script>
+<script src="../static/js/pbf.js"></script>
+<script src="../static/js/gtfsrt.js"></script>
+<script src="../static/js/app.js"></script>
+{% import "components/map.j2" as map %}
+{{ map.create([route|properties('route_id')]) }}
 {% endblock %}

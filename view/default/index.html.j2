@@ -2,7 +2,19 @@
 
 {% block title %}{{ FM_TEMPLATE_TITLE }}{% endblock %}
 
-{% block headline %}{{ FM_TEMPLATE_TITLE }}{% endblock %}
+{%block header %}
+<div class="w3-bar-item w3-hide-small">	
+    <img class="w3-image" src="static/img/logo.svg" width="40" height="40" />
+</div>
+<span class="w3-bar-item">{{ FM_TEMPLATE_TITLE }}</span>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="static/css/w3.css" />
+<link rel="stylesheet" href="static/css/w3-theme.css" />
+<link rel="stylesheet" href="static/css/maplibre.css" />
+<link rel="stylesheet" href="static/css/app.css" />
+{% endblock %}
 
 {% block main %}
 <aside id="fm-app-menu" class="w3-mobile w3-hide-small w3-hide-medium">
@@ -14,75 +26,11 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/maplibre.js"></script>
-<script src="/static/js/app.js"></script>
-<script src="/static/js/data.js"></script>
-<script>
-    const map = new maplibregl.Map({
-		container: 'fm-app-map',
-		style: 'https://tiles.openfreemap.org/styles/positron',
-		center: [10.5, 51.0],
-		zoom: 8
-	});
-
-    map.on('load', function () {
-        map.addSource('routes', {
-            type: 'geojson',
-            data: routesGeojson
-        });
-
-        map.addSource('stops', {
-            type: 'geojson',
-            data: stopsGeojson
-        });
-
-        map.addLayer({
-            'id': 'route-lines-outline',
-            'type': 'line',
-            'source': 'routes',
-            'paint': {
-                'line-color': '#ffffff',
-                'line-width': 15
-            },
-            'layout': {
-                'line-join': 'round',
-                'line-cap': 'round'
-            }
-        });
-        
-        map.addLayer({
-            'id': 'route-lines',
-            'type': 'line',
-            'source': 'routes',
-            'paint': {
-                'line-color': ['get', 'route_color'],
-                'line-width': 8
-            },
-            'layout': {
-                'line-join': 'round',
-                'line-cap': 'round'
-            }
-        });
-
-        map.addLayer({
-            'id': 'stop-points',
-            'type': 'circle',
-            'source': 'stops',
-            'minzoom': 14,
-            'paint': {
-                'circle-radius': 6,
-                'circle-color': '#ccc',
-                'circle-stroke-color': '#ffffff',
-                'circle-stroke-width': 2          
-            }
-        });
-
-        const bounds = getGeoJsonBounds(routesGeojson);
-        map.fitBounds(bounds, {
-            padding: 20,
-            duration: 2500,
-            easing(t) { return t; }
-        });
-    });
-</script>
+<script src="static/js/data.js"></script>
+<script src="static/js/maplibre.js"></script>
+<script src="static/js/pbf.js"></script>
+<script src="static/js/gtfsrt.js"></script>
+<script src="static/js/app.js"></script>
+{% import "components/map.j2" as map %}
+{{ map.create() }}
 {% endblock %}

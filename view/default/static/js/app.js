@@ -32,3 +32,23 @@ function getGeoJsonBounds(geojson) {
 
     return bounds;
 }
+
+async function fetchGtfsRealtimeData(url, headers) {
+    if (!url) {
+        return null;
+    }
+
+    const response = await fetch(url, {
+        headers: { ...(headers ?? {}) },
+    });
+
+    if (!response.ok) {
+        throw new Error(response.status);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const protocolBuffer = new Pbf(new Uint8Array(arrayBuffer));
+    const obj = FeedMessage.read(protocolBuffer);
+
+    return obj.entity;
+}

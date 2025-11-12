@@ -4,19 +4,15 @@
 		<title>{% block title %}{{ FM_TEMPLATE_TITLE }}{% endblock %}</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<meta charset="utf-8" />
-		<link rel="stylesheet" href="/static/css/w3.css" />
-		<link rel="stylesheet" href="/static/css/w3-theme.css" />
-		<link rel="stylesheet" href="/static/css/maplibre.css" />
-		<link rel="stylesheet" href="/static/css/app.css" />
+		{% block styles %}
+		{% endblock %}
 	</head>
 	<body>
 		<header class="w3-bar w3-theme w3-large">
 			<a id="fm-action-open-menu" class="w3-bar-item w3-large w3-hide-large" onclick="showMenu();">&#x2630;</a>
 			<a id="fm-action-close-menu" class="w3-bar-item w3-large w3-hide-large w3-hide" onclick="hideMenu();">&#x2716;</a>
-			<div class="w3-bar-item w3-hide-small">	
-				<img class="w3-image" src="/static/img/logo.svg" width="40" height="40" />
-			</div>
-			<span class="w3-bar-item">{% block headline %}{{ FM_TEMPLATE_TITLE }}{% endblock %}</span>
+			{% block header %}
+			{% endblock %}
 		</header>
 		<main>
         {% block main %}

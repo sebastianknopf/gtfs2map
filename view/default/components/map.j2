@@ -1,0 +1,98 @@
+{% macro create(route_ids = none) %}
+<script>
+    // create initial map object and additional controls
+    const map = new maplibregl.Map({
+		container: 'fm-app-map',
+		style: 'https://tiles.openfreemap.org/styles/positron',
+		center: [10.5, 51.0],
+		zoom: 8
+	});
+
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+    // add everything else when the map is loaded
+    map.on('load', function () {
+        
+        // add data sources
+        {% if route_ids %}
+        routesGeojson.features = routesGeojson.features.filter(f => {{ route_ids }}.includes(f.properties.route_id));
+        
+        map.addSource('routes', {
+            type: 'geojson',
+            data: routesGeojson
+        });
+        {% else %}
+        map.addSource('routes', {
+            type: 'geojson',
+            data: routesGeojson
+        });
+        {% endif %}
+
+        {% if route_ids %}
+        stopsGeojson.features = stopsGeojson.features.filter(f => f.properties.routes.some(r => {{ route_ids }}.includes(r.route_id)));
+        
+        map.addSource('stops', {
+            type: 'geojson',
+            data: stopsGeojson
+        });
+        {% else %}
+        map.addSource('stops', {
+            type: 'geojson',
+            data: stopsGeojson
+        });
+        {% endif %}
+
+        // add layers for routes
+        map.addLayer({
+            'id': 'route-lines-outline',
+            'type': 'line',
+            'source': 'routes',
+            'paint': {
+                'line-color': '#ffffff',
+                'line-width': 15
+            },
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            }
+        });
+        
+        map.addLayer({
+            'id': 'route-lines',
+            'type': 'line',
+            'source': 'routes',
+            'paint': {
+                'line-color': ['get', 'route_color'],
+                'line-width': 8
+            },
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            }
+        });
+
+        // add layer for stops
+        map.addLayer({
+            'id': 'stop-points',
+            'type': 'circle',
+            'source': 'stops',
+            'minzoom': 14,
+            'paint': {
+                'circle-radius': 6,
+                'circle-color': '#ccc',
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 2          
+            }
+        });
+
+        // fly to the bounds of all routes initially
+        const bounds = getGeoJsonBounds(routesGeojson);
+        map.fitBounds(bounds, {
+            padding: 20,
+            duration: 1000,
+            easing(t) { return t; }
+        });
+    });
+</script>
+{% endmacro %}
