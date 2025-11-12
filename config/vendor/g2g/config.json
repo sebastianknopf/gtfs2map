@@ -1,7 +1,7 @@
 {
   "agencies": [
     {
-      "agencyKey": "feedmap",
+      "agencyKey": "gtfsrtmapfx",
       "path": "/data/gtfs.zip"
     }
   ],

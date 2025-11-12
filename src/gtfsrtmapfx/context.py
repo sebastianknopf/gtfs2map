@@ -61,9 +61,9 @@ class GeoJsonContext:
         context['stops'] = FeatureCollection(features=stops)
 
         # add environment variables
-        context['FM_TEMPLATE_ID'] = os.getenv('FM_TEMPLATE_ID', 'default')
-        context['FM_TEMPLATE_TITLE'] = os.getenv('FM_TEMPLATE_TITLE', 'FeedMap')
-        context['FM_TEMPLATE_COLOR'] = os.getenv('FM_TEMPLATE_COLOR', '#4caf50')
-        context['FM_TEMPLATE_CREDITS'] = os.getenv('FM_TEMPLATE_CREDITS', 'true').lower() == 'true'
+        context['APP_TEMPLATE_ID'] = os.getenv('APP_TEMPLATE_ID', 'default')
+        context['APP_TEMPLATE_TITLE'] = os.getenv('APP_TEMPLATE_TITLE', 'Map')
+        context['APP_TEMPLATE_COLOR'] = os.getenv('APP_TEMPLATE_COLOR', '#4caf50')
+        context['APP_TEMPLATE_CREDITS'] = os.getenv('APP_TEMPLATE_CREDITS', 'true').lower() == 'true'
 
         return context

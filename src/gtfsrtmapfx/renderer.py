@@ -55,7 +55,7 @@ class JinjaRenderer:
         with open(index_output_file, 'w', encoding='utf-8') as f:
             f.write(rendered)
 
-        logging.info(f"Rendered: index.html [Mandatory]")
+        logging.info(f"Rendered index.html [Mandatory]")
 
         # routes/[route].html for each route
         for route in context.get('routes').features:
@@ -67,11 +67,11 @@ class JinjaRenderer:
             route_output_dir: str = os.path.join(self._output_dir, 'routes')
             os.makedirs(route_output_dir, exist_ok=True)
 
-            route_output_file: str = os.path.join(route_output_dir, f"{self._safe_filter(route.properties['route_id'])}.html")
-            with open(route_output_file, 'w', encoding='utf-8') as f:
+            route_output_file: str = f"routes/{self._safe_filter(route.properties['route_id'])}.html"
+            with open(os.path.join(self._output_dir, route_output_file), 'w', encoding='utf-8') as f:
                 f.write(rendered)
 
-            logging.info(f"Rendered: {route_output_file} [Mandatory]")
+            logging.info(f"Rendered {route_output_file} [Mandatory]")
         
         ###
         # render everything else
@@ -105,13 +105,13 @@ class JinjaRenderer:
                     with open(dest_file, 'w', encoding='utf-8') as f:
                         f.write(rendered)
 
-                    logging.info(f"Rendered: {dest_file}")
+                    logging.info(f"Rendered {relative_filename}")
 
                 elif not filename.endswith('.j2'):
-                    dest_file = os.path.join(output_path, filename)
-                    shutil.copy2(src_file, dest_file)
+                    dest_file: str = os.path.join(relative_path, filename)
+                    shutil.copy2(src_file, os.path.join(self._output_dir, dest_file))
 
-                    logging.info(f"Copied:  {dest_file}")
+                    logging.info(f"Copied {dest_file}")
 
     def _shade_filter(self, hex_color: str, level: int = 0) -> str:
         hex_color = hex_color.lstrip('#')

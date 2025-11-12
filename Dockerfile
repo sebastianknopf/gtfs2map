@@ -7,7 +7,7 @@ WORKDIR /app
 RUN npm install -g gtfs-to-geojson
 
 COPY .git/ /app/.git
-RUN mkdir -p /app/src/feedmap
+RUN mkdir -p /app/src/gtfsrtmapfx
 
 COPY pyproject.toml /app
 RUN python3 -m venv venv

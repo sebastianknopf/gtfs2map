@@ -2,11 +2,11 @@
     <div>
         {% set route_color = route|properties('route_color') %}
         {% if route_color is none %}
-            {% set route_color = FM_TEMPLATE_COLOR %}
+            {% set route_color = APP_TEMPLATE_COLOR %}
         {% endif %}
         {% set route_text_color = route|properties('route_text_color') %}
         {% if route_text_color is none %}
-            {% set route_text_color = FM_TEMPLATE_COLOR|text(0) %}
+            {% set route_text_color = APP_TEMPLATE_COLOR|text(0) %}
         {% endif %}
         {% if route|properties('route_short_name') is not none %}
             <div class="w3-large fm-route-name" style="background-color:{{ route_color }};color:{{ route_text_color }}">{{ route|properties('route_short_name') }}</div>

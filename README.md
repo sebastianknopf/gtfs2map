@@ -3,7 +3,7 @@ Currently under development ...
 
 ## Running
 ```bash
-docker compose run --rm feedmap render
+docker compose run --rm gtfsrtmapfx render
 ```
 
 ## License
