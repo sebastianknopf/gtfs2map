@@ -120,19 +120,22 @@ class JinjaRenderer:
         else:
             r, g, b = [int(hex_color[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
             a = 1.0
-
-        h, l, s = colorsys.rgb_to_hls(r, g, b)
         
         if level > 0:
-            l = min(1.0, l * (1 + level * 0.3))
+            h, l, s = colorsys.rgb_to_hls(r, g, b)
+
+            l = min(1.0, l * (1 + level * 0.385))
             s = max(0.0, s * 1.0)
+
+            r, g, b = colorsys.hls_to_rgb(h, l, s)
         elif level < 0:
+            h, l, s = colorsys.rgb_to_hls(r, g, b)
+
             l = max(0.0, l * (1 + level * 0.1))
             s = max(0.0, s * 0.9)
-        else:
-            l = l
 
-        r, g, b = colorsys.hls_to_rgb(h, l, s)
+            r, g, b = colorsys.hls_to_rgb(h, l, s)
+        
         r, g, b = int(r*255), int(g*255), int(b*255)
         a = int(a*255)
 
