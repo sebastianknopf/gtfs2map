@@ -81,6 +81,9 @@ class JinjaRenderer:
             if relative_path == '.':
                 relative_path = ''
 
+            if relative_path == 'components':
+                continue
+
             output_path: str = os.path.join(self._output_dir, relative_path)                
             os.makedirs(output_path, exist_ok=True)
 
