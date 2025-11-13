@@ -26,17 +26,17 @@
     <section>
         <div class="w3-container w3-padding-16">
             <h5>Aktuelle Informationen</h5>
-            <div class="app-alerts-empty">
+            <div class="w3-hide app-alerts-empty">
                 <span class="w3-medium w3-text-gray">Keine aktuellen Hinweise - Die Linie verkehrt planmäßig.</span>
             </div>
-            <div class="w3-hide app-alerts-list">
+            <ul class="w3-hide w3-ul app-alerts-list">
 
-            </div>
+            </ul>
         </div>
     </section>
     <section>
         <div class="w3-container w3-padding-16">
-            <a class="w3-button w3-block w3-theme" href="/index.html">Zurück</a>
+            <a class="w3-button w3-block w3-theme" href="../index.html">Zurück</a>
         </div>
     </section>
 </aside>
@@ -44,11 +44,57 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="../static/js/data.js"></script>
 <script src="../static/js/maplibre.js"></script>
+<script src="../static/js/moment.js"></script>
 <script src="../static/js/pbf.js"></script>
 <script src="../static/js/gtfsrt.js"></script>
 <script src="../static/js/app.js"></script>
+<script>
+var routeIds = ['{{ route|properties('route_id') }}'];
+
+{% if GTFS_REALTIME_SERVICE_ALERTS_URL %}
+function routeServiceAlertsCallback(routeServiceAlertsMap) {
+    let alerts = routeServiceAlertsMap.get('{{ route|properties('route_id') }}');
+
+    let alertsEmptyContainer = document.querySelector('.app-alerts-empty');
+    let alertsListContainer = document.querySelector('.app-alerts-list');
+
+    if (alerts.length > 0) {
+        alertsListContainer.innerHTML = '';
+
+        alerts.forEach(a => {
+            const alertItem = document.createElement('li');
+            alertItem.style.border = 0;
+            alertItem.style.padding = '8px 0px';
+
+            let alertContainer = createAlertContainer(a);
+            alertItem.appendChild(alertContainer);
+
+            alertsListContainer.appendChild(alertItem);
+        });
+
+        alertsEmptyContainer.classList.add('w3-hide');
+        alertsListContainer.classList.remove('w3-hide');
+    } else {
+        alertsEmptyContainer.classList.remove('w3-hide');
+        alertsListContainer.classList.add('w3-hide');
+    }
+}
+{% endif %}
+{% if GTFS_REALTIME_TRIP_UPDATES_URL is not none or GTFS_REALTIME_VEHICLE_POSITIONS_URL is not none or GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function (e) {
+        {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+        initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
+        {% endif %}
+    });
+} else {
+    {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+    initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
+    {% endif %}
+}
+{% endif %}
+</script>
 {% import "components/map.j2" as map %}
 {{ map.create([route|properties('route_id')]) }}
 {% endblock %}

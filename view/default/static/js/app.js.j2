@@ -1,0 +1,167 @@
+var routesGeojson = {{ routes|geojson }};
+var stopsGeojson = {{ stops|geojson }};
+
+var serviceAlerts = [];
+let serviceAlertsUpdateInterval;
+
+function escapeId(id) {
+  return id
+    .replace(/\\/g, '_')
+    .replace(/\//g, '_')
+    .replace(/&/g, '_')
+    .replace(/%/g, '_')
+    .replace(/:/g, '_')
+    .replace(/\?/g, '_')
+    .replace(/#/g, '_')
+    .replace(/"/g, '_');
+}
+
+function showMenu() {
+	document.getElementById('app-menu').classList.remove('w3-hide-small');
+	document.getElementById('app-menu').classList.remove('w3-hide-medium');
+	
+	document.getElementById('app-action-open-menu').classList.add('w3-hide');
+	document.getElementById('app-action-close-menu').classList.remove('w3-hide');
+}
+ 
+function hideMenu() {
+	document.getElementById('app-menu').classList.add('w3-hide-small');
+	document.getElementById('app-menu').classList.add('w3-hide-medium');
+	
+	document.getElementById('app-action-open-menu').classList.remove('w3-hide');
+	document.getElementById('app-action-close-menu').classList.add('w3-hide');
+}
+
+function onRouteItemClick(routeId) {
+    window.location.href = `routes/${routeId}.html`;
+}
+
+function getGeoJsonBounds(geojson) {
+    const bounds = new maplibregl.LngLatBounds();
+	
+    geojson.features.forEach(feature => {
+        const geom = feature.geometry;
+        if (geom.type === 'LineString') {
+            geom.coordinates.forEach(coord => bounds.extend(coord));
+        } else if (geom.type === 'MultiLineString') {
+            geom.coordinates.forEach(line => line.forEach(coord => bounds.extend(coord)));
+        }
+    });
+
+    return bounds;
+}
+
+function getTranslation(translations, language) {
+    let translation = translations.find(t => t.language.startsWith(language));
+    if (translation) {
+        return translation.text;
+    } else if (translations.length > 0) {
+        return translations[0].text;
+    } else {
+        return null;
+    }
+}
+
+async function fetchGtfsRealtimeData(url, headers) {
+    if (!url) {
+        return null;
+    }
+
+    const response = await fetch(url, {
+        headers: { ...(headers ?? {}) },
+    });
+
+    if (!response.ok) {
+        throw new Error(response.status);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const protocolBuffer = new Pbf(new Uint8Array(arrayBuffer));
+    const obj = FeedMessage.read(protocolBuffer);
+
+    return obj.entity;
+}
+
+function filterServiceAlerts(alerts, routeId) {
+    let routeStopIds = stopsGeojson.features.filter(f => f.properties.routes.some(r => r.route_id == routeId)).map(f => f.properties.stop_id);
+    let routeParentStationIds = [...new Set(stopsGeojson.features.filter(f => f.properties.routes.some(r => r.route_id == routeId)).map(f => f.properties.parent_station))];
+
+    return alerts.filter(a => {
+        if (!a.alert.informed_entity) {
+            return true;
+        }
+
+        return a.alert.informed_entity.some(e => e.route_id === routeId) || 
+            a.alert.informed_entity.some(e => routeStopIds.includes(e.stop_id)) ||
+            a.alert.informed_entity.some(e => routeParentStationIds.includes(e.stop_id));
+    });
+}
+
+async function updateServiceAlerts(url, routeIds, serviceAlertsCallback) {
+    let alerts = await fetchGtfsRealtimeData(url, null);
+    let routeServiceAlertsMap = new Map();
+
+    serviceAlerts = [];
+
+    routeIds.forEach(r => {
+        let serviceAlertsForRoute = filterServiceAlerts(alerts, r);
+        routeServiceAlertsMap.set(r, serviceAlertsForRoute);
+
+        serviceAlerts += serviceAlertsForRoute;
+    });
+
+    serviceAlertsCallback(routeServiceAlertsMap);
+}
+
+function initializeServiceAlerts(url, routeIds, serviceAlertsCallback) {
+    if (!serviceAlertsUpdateInterval) {
+        const updateInterval = 60 * 1000;
+
+        updateServiceAlerts(url, routeIds, serviceAlertsCallback);
+
+        serviceAlertsUpdateInterval = setInterval(() => {
+            updateServiceAlerts(url, routeIds, serviceAlertsCallback);
+        }, updateInterval);
+    }
+}
+
+function createAlertContainer(alertObject) {
+    const alertContainer = document.createElement('div');
+    
+    const alertTitle = document.createElement('h6');
+    alertTitle.innerHTML = getTranslation(alertObject.alert.header_text.translation, 'de');
+    alertContainer.appendChild(alertTitle);
+
+    alertObject.alert.active_period.forEach(p => {
+        const activePeriodParagraph = document.createElement('p');
+        activePeriodParagraph.classList.add('w3-small');
+        activePeriodParagraph.classList.add('w3-bold');
+        
+        if (p.start != 0 && p.end != 0) {
+            activePeriodParagraph.innerHTML = `Von ${moment.unix(p.start).format('{{ APP_DATETIME_FORMAT }}')} bis ${moment.unix(p.end).format('{{ APP_DATETIME_FORMAT }}')}`;
+            alertContainer.appendChild(activePeriodParagraph);
+        } else if (p.start != 0 && p.end == 0) {
+            activePeriodParagraph.innerHTML = `Ab ${moment.unix(p.start).format('{{ APP_DATETIME_FORMAT }}')}`;
+            alertContainer.appendChild(activePeriodParagraph);
+        } else if (p.start == 0 && p.end != 0) {
+            activePeriodParagraph.innerHTML = `Bis ${moment.unix(p.end).format('{{ APP_DATETIME_FORMAT }}')}`;
+            alertContainer.appendChild(activePeriodParagraph);
+        } 
+    });
+
+    const alertMessage = document.createElement('p');
+    alertMessage.classList.add('w3-text-gray');
+    alertMessage.classList.add('w3-small');
+    alertMessage.innerHTML = getTranslation(alertObject.alert.description_text.translation, 'de');
+    alertContainer.appendChild(alertMessage);
+
+    const alertLink = document.createElement('a');
+    alertLink.setAttribute('href', getTranslation(alertObject.alert.url.translation, 'de'));
+    alertLink.setAttribute('target', '_blank');
+    alertLink.classList.add('w3-text-theme');
+    alertLink.classList.add('w3-small');
+    alertLink.innerHTML = 'Mehr Infos';
+    alertContainer.appendChild(alertLink);
+
+    return alertContainer;
+}

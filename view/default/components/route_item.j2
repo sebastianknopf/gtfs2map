@@ -1,6 +1,6 @@
 <li class="w3-bar app-route-item" data-route-id="{{ route|properties('route_id')|safe }}" onclick="onRouteItemClick(this.getAttribute('data-route-id'));">
     {% include "components/route.j2" %}
-    <div class="w3-hide" style="margin-left:auto;">
-        <img src="/static/img/alert.svg" width="24" height="24" />
+    <div class="w3-hide app-route-alert-icon" style="margin-left:auto;">
+        <img src="static/img/alert.svg" width="24" height="24" />
     </div>
 </li>

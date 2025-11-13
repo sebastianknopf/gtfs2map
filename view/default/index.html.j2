@@ -26,11 +26,40 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="static/js/data.js"></script>
 <script src="static/js/maplibre.js"></script>
+<script src="static/js/moment.js"></script>
 <script src="static/js/pbf.js"></script>
 <script src="static/js/gtfsrt.js"></script>
 <script src="static/js/app.js"></script>
+<script>
+var routeIds = routesGeojson.features.map(f => f.properties.route_id);
+
+{% if GTFS_REALTIME_SERVICE_ALERTS_URL %}
+function routeServiceAlertsCallback(routeServiceAlertsMap) {
+    routeServiceAlertsMap.forEach((serviceAlerts, routeId) => {
+        let routeAlertIcon = document.querySelector(`[data-route-id="${escapeId(routeId)}"] .app-route-alert-icon`);
+        if (routeAlertIcon && serviceAlerts.length > 0) {
+            routeAlertIcon.classList.remove('w3-hide');
+        } else if (routeAlertIcon && !serviceAlerts.length > 0) {
+            routeAlertIcon.classList.add('w3-hide');
+        }
+    });
+}
+{% endif %}
+{% if GTFS_REALTIME_TRIP_UPDATES_URL is not none or GTFS_REALTIME_VEHICLE_POSITIONS_URL is not none or GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function (e) {
+        {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+        initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
+        {% endif %}
+    });
+} else {
+    {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+    initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
+    {% endif %}
+}
+{% endif %}
+</script>
 {% import "components/map.j2" as map %}
 {{ map.create() }}
 {% endblock %}
