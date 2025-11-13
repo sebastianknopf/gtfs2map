@@ -61,9 +61,16 @@ class GeoJsonContext:
         context['stops'] = FeatureCollection(features=stops)
 
         # add environment variables
+        context['GTFS_REALTIME_TRIP_UPDATES_URL'] = os.getenv('GTFS_REALTIME_TRIP_UPDATES_URL', None)
+        context['GTFS_REALTIME_VEHICLE_POSITIONS_URL'] = os.getenv('GTFS_REALTIME_VEHICLE_POSITIONS_URL', None)
+        context['GTFS_REALTIME_SERVICE_ALERTS_URL'] = os.getenv('GTFS_REALTIME_SERVICE_ALERTS_URL', None)
+
         context['APP_TEMPLATE_ID'] = os.getenv('APP_TEMPLATE_ID', 'default')
         context['APP_TEMPLATE_TITLE'] = os.getenv('APP_TEMPLATE_TITLE', 'Map')
         context['APP_TEMPLATE_COLOR'] = os.getenv('APP_TEMPLATE_COLOR', '#4caf50')
+        context['APP_DATETIME_FORMAT'] = os.getenv('APP_DATETIME_FORMAT', 'DD.MM.YYYY HH:mm')
+        context['APP_DATE_FORMAT'] = os.getenv('APP_DATE_FORMAT', 'DD.MM.YYYY')
+        context['APP_TIME_FORMAT'] = os.getenv('APP_TIME_FORMAT', 'HH:mm')
         context['APP_TEMPLATE_CREDITS'] = os.getenv('APP_TEMPLATE_CREDITS', 'true').lower() == 'true'
 
         return context
