@@ -81,20 +81,8 @@ function routeServiceAlertsCallback(routeServiceAlertsMap) {
     }
 }
 {% endif %}
-{% if GTFS_REALTIME_TRIP_UPDATES_URL is not none or GTFS_REALTIME_VEHICLE_POSITIONS_URL is not none or GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function (e) {
-        {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
-        initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
-        {% endif %}
-    });
-} else {
-    {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
-    initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
-    {% endif %}
-}
-{% endif %}
 </script>
 {% import "components/map.j2" as map %}
 {{ map.create([route|properties('route_id')]) }}
+{% include "components/realtime_init_script.j2" %}
 {% endblock %}

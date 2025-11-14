@@ -1,98 +1,134 @@
 {% macro create(route_ids = none) %}
 <script>
-    // create initial map object and additional controls
-    const map = new maplibregl.Map({
-		container: 'app-map',
-		style: 'https://tiles.openfreemap.org/styles/positron',
-		center: [10.5, 51.0],
-		zoom: 8
-	});
+// create container for visual objects in the map
+const vehicleMarkersMap = new Map();
 
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+// create initial map object and additional controls
+const map = new maplibregl.Map({
+    container: 'app-map',
+    style: 'https://tiles.openfreemap.org/styles/positron',
+    center: [10.5, 51.0],
+    zoom: 8
+});
 
-    // add everything else when the map is loaded
-    map.on('load', function () {
-        
-        // add data sources
-        {% if route_ids %}
-        routesGeojson.features = routesGeojson.features.filter(f => {{ route_ids }}.includes(f.properties.route_id));
-        
-        map.addSource('routes', {
-            type: 'geojson',
-            data: routesGeojson
-        });
-        {% else %}
-        map.addSource('routes', {
-            type: 'geojson',
-            data: routesGeojson
-        });
-        {% endif %}
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+map.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
-        {% if route_ids %}
-        stopsGeojson.features = stopsGeojson.features.filter(f => f.properties.routes.some(r => {{ route_ids }}.includes(r.route_id)));
-        
-        map.addSource('stops', {
-            type: 'geojson',
-            data: stopsGeojson
-        });
-        {% else %}
-        map.addSource('stops', {
-            type: 'geojson',
-            data: stopsGeojson
-        });
-        {% endif %}
-
-        // add layers for routes
-        map.addLayer({
-            'id': 'route-lines-outline',
-            'type': 'line',
-            'source': 'routes',
-            'paint': {
-                'line-color': '#ffffff',
-                'line-width': 15
-            },
-            'layout': {
-                'line-join': 'round',
-                'line-cap': 'round'
-            }
-        });
-        
-        map.addLayer({
-            'id': 'route-lines',
-            'type': 'line',
-            'source': 'routes',
-            'paint': {
-                'line-color': ['get', 'route_color'],
-                'line-width': 8
-            },
-            'layout': {
-                'line-join': 'round',
-                'line-cap': 'round'
-            }
-        });
-
-        // add layer for stops
-        map.addLayer({
-            'id': 'stop-points',
-            'type': 'circle',
-            'source': 'stops',
-            'minzoom': 14,
-            'paint': {
-                'circle-radius': 6,
-                'circle-color': '#ccc',
-                'circle-stroke-color': '#ffffff',
-                'circle-stroke-width': 2          
-            }
-        });
-
-        // fly to the bounds of all routes initially
-        const bounds = getGeoJsonBounds(routesGeojson);
-        map.fitBounds(bounds, {
-            padding: 20,
-            duration: 1000,
-            easing(t) { return t; }
-        });
+// add everything else when the map is loaded
+map.on('load', function () {
+    
+    // add data sources
+    {% if route_ids %}
+    routesGeojson.features = routesGeojson.features.filter(f => {{ route_ids }}.includes(f.properties.route_id));
+    
+    map.addSource('routes', {
+        type: 'geojson',
+        data: routesGeojson
     });
+    {% else %}
+    map.addSource('routes', {
+        type: 'geojson',
+        data: routesGeojson
+    });
+    {% endif %}
+
+    {% if route_ids %}
+    stopsGeojson.features = stopsGeojson.features.filter(f => f.properties.routes.some(r => {{ route_ids }}.includes(r.route_id)));
+    
+    map.addSource('stops', {
+        type: 'geojson',
+        data: stopsGeojson
+    });
+    {% else %}
+    map.addSource('stops', {
+        type: 'geojson',
+        data: stopsGeojson
+    });
+    {% endif %}
+
+    // add layers for routes
+    map.addLayer({
+        'id': 'route-lines-outline',
+        'type': 'line',
+        'source': 'routes',
+        'paint': {
+            'line-color': '#ffffff',
+            'line-width': 15
+        },
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        }
+    });
+    
+    map.addLayer({
+        'id': 'route-lines',
+        'type': 'line',
+        'source': 'routes',
+        'paint': {
+            'line-color': ['get', 'route_color'],
+            'line-width': 8
+        },
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        }
+    });
+
+    // add layer for stops
+    map.addLayer({
+        'id': 'stop-points',
+        'type': 'circle',
+        'source': 'stops',
+        'minzoom': 14,
+        'paint': {
+            'circle-radius': 6,
+            'circle-color': '#ccc',
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2          
+        }
+    });
+
+    // fly to the bounds of all routes initially
+    const bounds = getGeoJsonBounds(routesGeojson);
+    map.fitBounds(bounds, {
+        padding: 20,
+        duration: 1000,
+        easing(t) { return t; }
+    });
+});
+
+function routeVehiclePositionsCallback(positions) {
+
+    // remove vehicle markers which are not present in the GTFS-RT vehicle positions anymore
+    let vehicleIds = positions.map(p => p.vehicle.vehicle.id);
+    for (const [vehicleId, marker] of vehicleMarkersMap.entries()) {
+        if (!vehicleIds.includes(vehicleId)) {
+            marker.remove();
+            vehicleMarkersMap.delete(vehicleId);
+        }
+    }
+
+    // update all vehicle positions with their latest incoming data    
+    {% if APP_UNMATCHED_VEHICLES_ENABLED == false %}
+    positions = filterVehiclePositions(positions, routeIds);
+    {% endif %}
+
+    positions.forEach(p => {
+        if (vehicleMarkersMap.has(p.vehicle.vehicle.id)) {
+            let marker = vehicleMarkersMap.get(p.vehicle.vehicle.id);
+            marker.setLngLat([p.vehicle.position.longitude, p.vehicle.position.latitude]);
+        } else {
+            let markerContent = document.createElement('div');
+            markerContent.innerHTML = '<b>' + p.vehicle.vehicle.label + '</b>';
+
+            let marker = new maplibregl.Marker({element: markerContent, anchor: 'center'})
+                .setLngLat([p.vehicle.position.longitude, p.vehicle.position.latitude])
+                .addTo(map);
+
+            vehicleMarkersMap.set(p.vehicle.vehicle.id, marker);
+        }
+    });
+}
 </script>
 {% endmacro %}

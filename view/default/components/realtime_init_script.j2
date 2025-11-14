@@ -1,0 +1,21 @@
+{% if GTFS_REALTIME_TRIP_UPDATES_URL is not none or GTFS_REALTIME_VEHICLE_POSITIONS_URL is not none or GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+<script>
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function (e) {
+        {% if GTFS_REALTIME_VEHICLE_POSITIONS_URL is not none %}
+        initializeVehiclePositions('{{ GTFS_REALTIME_VEHICLE_POSITIONS_URL }}', routeIds, routeVehiclePositionsCallback);
+        {% endif %}
+        {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+        initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
+        {% endif %}
+    });
+} else {
+    {% if GTFS_REALTIME_VEHICLE_POSITIONS_URL is not none %}
+    initializeVehiclePositions('{{ GTFS_REALTIME_VEHICLE_POSITIONS_URL }}', routeIds, routeVehiclePositionsCallback);
+    {% endif %}
+    {% if GTFS_REALTIME_SERVICE_ALERTS_URL is not none %}
+    initializeServiceAlerts('{{ GTFS_REALTIME_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
+    {% endif %}
+}
+</script>
+{% endif %}

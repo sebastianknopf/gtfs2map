@@ -1,6 +1,9 @@
 var routesGeojson = {{ routes|geojson }};
 var stopsGeojson = {{ stops|geojson }};
 
+var vehiclePositions = [];
+let vehiclePositionsUpdateInterval;
+
 var serviceAlerts = [];
 let serviceAlertsUpdateInterval;
 
@@ -80,6 +83,38 @@ async function fetchGtfsRealtimeData(url, headers) {
     const obj = FeedMessage.read(protocolBuffer);
 
     return obj.entity;
+}
+
+function filterVehiclePositions(positions, routeIds) {
+    return positions.filter(p => {
+        if (p.vehicle.trip == null) {
+            return false;
+        }
+
+        return p.vehicle.trip.route_id != null && routeIds.includes(p.vehicle.trip.route_id);
+    });
+}
+
+async function updateVehiclePositions(url, routeIds, vehiclePositionsCallback) {
+    let positions = await fetchGtfsRealtimeData(url, null);
+
+    vehiclePositions = positions.filter(p => {
+        return p.vehicle.vehicle != null && p.vehicle.vehicle.id != null;
+    });
+
+    vehiclePositionsCallback(vehiclePositions);
+}
+
+function initializeVehiclePositions(url, routeIds, vehiclePositionsCallback) {
+    if (!vehiclePositionsUpdateInterval) {
+        const updateInterval = 10 * 1000;
+
+        updateVehiclePositions(url, routeIds, vehiclePositionsCallback);
+
+        vehiclePositionsUpdateInterval = setInterval(() => {
+            updateVehiclePositions(url, routeIds, vehiclePositionsCallback);
+        }, updateInterval);
+    }
 }
 
 function filterServiceAlerts(alerts, routeId) {
