@@ -71,6 +71,7 @@ class GeoJsonContext:
         context['APP_DATETIME_FORMAT'] = os.getenv('APP_DATETIME_FORMAT', 'DD.MM.YYYY HH:mm')
         context['APP_DATE_FORMAT'] = os.getenv('APP_DATE_FORMAT', 'DD.MM.YYYY')
         context['APP_TIME_FORMAT'] = os.getenv('APP_TIME_FORMAT', 'HH:mm')
+        context['APP_UNMATCHED_VEHICLES_ENABLED'] = os.getenv('APP_UNMATCHED_VEHICLES_ENABLED', 'false').lower() == 'true'
         context['APP_TEMPLATE_CREDITS'] = os.getenv('APP_TEMPLATE_CREDITS', 'true').lower() == 'true'
 
         return context

@@ -12,6 +12,7 @@ services:
       - APP_DATETIME_FORMAT
       - APP_DATE_FORMAT
       - APP_TIME_FORMAT
+      - APP_UNMATCHED_VEHICLES_ENABLED
       - APP_TEMPLATE_CREDITS
     volumes:
       - ./view/${APP_TEMPLATE_ID}:/data/j2/input:ro
