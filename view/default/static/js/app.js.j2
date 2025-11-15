@@ -1,8 +1,9 @@
 var routesGeojson = {{ routes|geojson }};
 var stopsGeojson = {{ stops|geojson }};
 
+var tripUpdates = [];
 var vehiclePositions = [];
-let vehiclePositionsUpdateInterval;
+let realtimeUpdateInterval;
 
 var serviceAlerts = [];
 let serviceAlertsUpdateInterval;
@@ -52,6 +53,24 @@ function getGeoJsonBounds(geojson) {
     });
 
     return bounds;
+}
+
+function getRouteProperties(routeId) {
+    let routeFeature = routesGeojson.features.find(r => r.properties.route_id == routeId);
+    if (routeFeature) {
+        return routeFeature.properties;
+    } else {
+        return null;
+    }
+}
+
+function getStopProperties(stopId) {
+    let stopFeature = stopsGeojson.features.find(s => s.properties.stop_id == stopId);
+    if (stopFeature) {
+        return stopFeature.properties;
+    } else {
+        return null;
+    }
 }
 
 function getVehicleBearing(lngLatA, lngLatB) {
@@ -113,21 +132,45 @@ function filterVehiclePositions(positions, routeIds) {
 async function updateVehiclePositions(url, routeIds, vehiclePositionsCallback) {
     let positions = await fetchGtfsRealtimeData(url, null);
 
-    vehiclePositions = positions.filter(p => {
+    window.vehiclePositions = positions.filter(p => {
         return p.vehicle.vehicle != null && p.vehicle.vehicle.id != null;
     });
 
-    vehiclePositionsCallback(vehiclePositions);
+    if (vehiclePositionsCallback) {
+        vehiclePositionsCallback(window.vehiclePositions);
+    }
 }
 
-function initializeVehiclePositions(url, routeIds, vehiclePositionsCallback) {
-    if (!vehiclePositionsUpdateInterval) {
+function filterTripUpdates(updates, routeIds) {
+    return updates.filter(u => {
+        if (u.trip_update.trip == null) {
+            return false;
+        }
+
+        return u.trip_update.trip != null && routeIds.includes(u.trip_update.trip.route_id);
+    });
+}
+
+async function updateTripUpdates(url, routeIds, tripUpdatesCallback) {
+    let updates = await fetchGtfsRealtimeData(url, null);
+
+    window.tripUpdates = filterTripUpdates(updates, routeIds);
+
+    if (tripUpdatesCallback) {
+        tripUpdatesCallback(window.tripUpdates);
+    }
+}
+
+function initializeRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
+    if (!realtimeUpdateInterval) {
         const updateInterval = 10 * 1000;
 
-        updateVehiclePositions(url, routeIds, vehiclePositionsCallback);
+        updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
+        updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
 
-        vehiclePositionsUpdateInterval = setInterval(() => {
-            updateVehiclePositions(url, routeIds, vehiclePositionsCallback);
+        realtimeUpdateInterval = setInterval(() => {
+            updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
+            updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
         }, updateInterval);
     }
 }
@@ -200,16 +243,18 @@ async function updateServiceAlerts(url, routeIds, serviceAlertsCallback) {
     let alerts = await fetchGtfsRealtimeData(url, null);
     let routeServiceAlertsMap = new Map();
 
-    serviceAlerts = [];
+    window.serviceAlerts = [];
 
     routeIds.forEach(r => {
         let serviceAlertsForRoute = filterServiceAlerts(alerts, r);
         routeServiceAlertsMap.set(r, serviceAlertsForRoute);
 
-        serviceAlerts += serviceAlertsForRoute;
+        window.serviceAlerts += serviceAlertsForRoute;
     });
 
-    serviceAlertsCallback(routeServiceAlertsMap);
+    if (serviceAlertsCallback) {
+        serviceAlertsCallback(routeServiceAlertsMap);
+    }
 }
 
 function initializeServiceAlerts(url, routeIds, serviceAlertsCallback) {
