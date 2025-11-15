@@ -111,6 +111,32 @@ map.on('dragstart', function () {
     window.history.replaceState({}, '', window.location.pathname + '?' + params);
 });
 
+map.on('zoom', function () {
+    let zoom = map.getZoom();
+
+    vehicleMarkersMap.forEach((marker, vehicleId) => {
+        let markerElement = marker.getElement();
+
+        let iconWrapper = markerElement.querySelector('.app-vehicle-img-wrapper');
+        if (iconWrapper) {
+            if (zoom < 11) {
+                iconWrapper.style.transform = 'scale(0.6)';
+            } else {
+                iconWrapper.style.transform = '';
+            }
+        }
+
+        let tripInfo = markerElement.querySelector('.app-vehicle-trip-info');
+        if (tripInfo) {
+            if (zoom < 13) {
+                tripInfo.classList.add('w3-hide');
+            } else {
+                tripInfo.classList.remove('w3-hide');
+            }
+        }
+    });
+});
+
 function routeVehiclePositionsCallback(positions) {
 
     // remove vehicle markers which are not present in the GTFS-RT vehicle positions anymore
@@ -130,13 +156,27 @@ function routeVehiclePositionsCallback(positions) {
     positions.forEach(p => {
         if (vehicleMarkersMap.has(p.vehicle.vehicle.id)) {
             let marker = vehicleMarkersMap.get(p.vehicle.vehicle.id);
-            marker.setLngLat([p.vehicle.position.longitude, p.vehicle.position.latitude]);
+
+            let previousLngLat = marker.getLngLat();
+            let thisLngLat = new maplibregl.LngLat(p.vehicle.position.longitude, p.vehicle.position.latitude);
+            
+            if (previousLngLat.lng != thisLngLat.lng || previousLngLat.lat != thisLngLat.lat) {
+                marker.setLngLat([thisLngLat.lng, thisLngLat.lat]);
+
+                let bearing = this.getVehicleBearing(previousLngLat, thisLngLat);
+                let markerVehicleDirection = marker.getElement().querySelector('.app-vehicle-direction-arrow-wrapper');
+                if (markerVehicleDirection) {
+                    markerVehicleDirection.style.transform = `translate(-50%, -50%) rotate(${bearing}deg)`
+                } else {
+                    console.log('Not Found');
+                }
+            }
         } else {
             let markerContainer = createVehicleMarkerContainer(p, '{{ static_assets_dir }}');
 
             let marker = new maplibregl.Marker({
                     element: markerContainer, 
-                    anchor: 'left'
+                    anchor: 'center'
                 })
                 .setLngLat([p.vehicle.position.longitude, p.vehicle.position.latitude])
                 .addTo(map);
