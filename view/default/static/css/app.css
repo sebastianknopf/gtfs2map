@@ -63,3 +63,30 @@ span.app-route-desc {
 	display: inline-block;
 	max-width: 300px;
 }
+
+div.app-vehicle-img-wrapper {
+	position: relative;
+	padding: 8px;
+	cursor: pointer;
+}
+
+div.app-vehicle-direction-arrow-wrapper {
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%) rotate(0deg);
+	transform-origin: center;
+}
+
+div.app-vehicle-direction-arrow-wrapper div {
+	position: absolute;
+	left: 50%;
+    bottom: 110%;
+    transform: translateX(-50%);
+}
+
+div.app-vehicle-trip-info {
+	margin-top: 10px;
+}

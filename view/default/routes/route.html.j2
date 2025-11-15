@@ -83,6 +83,6 @@ function routeServiceAlertsCallback(routeServiceAlertsMap) {
 {% endif %}
 </script>
 {% import "components/map.j2" as map %}
-{{ map.create([route|properties('route_id')]) }}
+{{ map.create('../static', [route|properties('route_id')]) }}
 {% include "components/realtime_init_script.j2" %}
 {% endblock %}

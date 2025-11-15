@@ -117,6 +117,55 @@ function initializeVehiclePositions(url, routeIds, vehiclePositionsCallback) {
     }
 }
 
+function createVehicleMarkerContainer(vehiclePosition, staticAssetsDir) {
+    let markerContainer = document.createElement('div');
+    markerContainer.classList.add('w3-center');
+    
+    let markerIconDiv = document.createElement('div');
+    markerIconDiv.classList.add('w3-white');
+    markerIconDiv.classList.add('w3-round-xxlarge');
+    markerIconDiv.classList.add('w3-border');
+    markerIconDiv.classList.add('app-vehicle-img-wrapper');
+    markerContainer.appendChild(markerIconDiv);
+
+    let markerIconImg = document.createElement('img');
+    markerIconImg.setAttribute('src', `${staticAssetsDir}/img/realtime.svg`);
+    markerIconImg.setAttribute('width', '32');
+    markerIconImg.setAttribute('height', '32');
+    markerIconDiv.appendChild(markerIconImg);
+
+    let markerVehicleDirectionArrowWrapperDiv = document.createElement('div');
+    markerVehicleDirectionArrowWrapperDiv.classList.add('app-vehicle-direction-arrow-wrapper');
+    markerIconDiv.appendChild(markerVehicleDirectionArrowWrapperDiv);
+
+    let markerVehicleDirectionArrowDiv = document.createElement('div');
+    markerVehicleDirectionArrowDiv.innerHTML = `<svg width="24" height="10" viewBox="0 0 24 10" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0 L22 10 Q12 6, 2 10 Z" fill="#03a535ff" />
+    </svg>`;
+    markerVehicleDirectionArrowWrapperDiv.appendChild(markerVehicleDirectionArrowDiv);
+
+    let tripInfoDiv = document.createElement('div');
+    tripInfoDiv.classList.add('w3-round');
+    tripInfoDiv.classList.add('w3-small');
+    tripInfoDiv.classList.add('app-vehicle-trip-info');
+    markerContainer.appendChild(tripInfoDiv);
+
+    let routeNameSpan = document.createElement('span');
+    routeNameSpan.classList.add('w3-round');
+    routeNameSpan.setAttribute('style', 'padding:2px;color:#fff;background:#03a535ff;');
+    routeNameSpan.innerHTML = '<b>720</b>';
+    tripInfoDiv.appendChild(routeNameSpan);
+
+    let delayInfoSpan = document.createElement('span');
+    delayInfoSpan.classList.add('w3-round');
+    delayInfoSpan.classList.add('w3-white');
+    delayInfoSpan.setAttribute('style', 'padding:2px;color:#ff0000;');
+    delayInfoSpan.innerHTML = '<b>+2</b>';
+    tripInfoDiv.appendChild(delayInfoSpan);
+
+    return markerContainer;
+}
+
 function filterServiceAlerts(alerts, routeId) {
     let routeStopIds = stopsGeojson.features.filter(f => f.properties.routes.some(r => r.route_id == routeId)).map(f => f.properties.stop_id);
     let routeParentStationIds = [...new Set(stopsGeojson.features.filter(f => f.properties.routes.some(r => r.route_id == routeId)).map(f => f.properties.parent_station))];

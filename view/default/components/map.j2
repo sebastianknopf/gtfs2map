@@ -1,4 +1,4 @@
-{% macro create(route_ids = none) %}
+{% macro create(static_assets_dir, route_ids = none) %}
 <script>
 // create container for visual objects in the map
 const vehicleMarkersMap = new Map();
@@ -90,12 +90,25 @@ map.on('load', function () {
     });
 
     // fly to the bounds of all routes initially
-    const bounds = getGeoJsonBounds(routesGeojson);
-    map.fitBounds(bounds, {
-        padding: 20,
-        duration: 1000,
-        easing(t) { return t; }
-    });
+    // if there's no vehicle which shall be focused
+    let params = new URLSearchParams(window.location.search);
+    let vehicleId = params.get('vehicleId');
+
+    if (vehicleId == null || !vehicleMarkersMap.has(vehicleId)) {
+        const bounds = getGeoJsonBounds(routesGeojson);
+        map.fitBounds(bounds, {
+            padding: 20,
+            duration: 1000,
+            easing(t) { return t; }
+        });
+    }
+});
+
+map.on('dragstart', function () {
+    let params = new URLSearchParams(window.location.search);
+    params.delete('vehicleId');
+
+    window.history.replaceState({}, '', window.location.pathname + '?' + params);
 });
 
 function routeVehiclePositionsCallback(positions) {
@@ -119,16 +132,44 @@ function routeVehiclePositionsCallback(positions) {
             let marker = vehicleMarkersMap.get(p.vehicle.vehicle.id);
             marker.setLngLat([p.vehicle.position.longitude, p.vehicle.position.latitude]);
         } else {
-            let markerContent = document.createElement('div');
-            markerContent.innerHTML = '<b>' + p.vehicle.vehicle.label + '</b>';
+            let markerContainer = createVehicleMarkerContainer(p, '{{ static_assets_dir }}');
 
-            let marker = new maplibregl.Marker({element: markerContent, anchor: 'center'})
+            let marker = new maplibregl.Marker({
+                    element: markerContainer, 
+                    anchor: 'left'
+                })
                 .setLngLat([p.vehicle.position.longitude, p.vehicle.position.latitude])
                 .addTo(map);
+
+            marker.getElement().addEventListener('click', function () {
+                let params = new URLSearchParams(window.location.search);
+                params.set('vehicleId', p.vehicle.vehicle.id);
+
+                window.history.replaceState({}, '', window.location.pathname + '?' + params);
+
+                map.flyTo({
+                    center: marker.getLngLat(),
+                    zoom: 16
+                });
+            });
 
             vehicleMarkersMap.set(p.vehicle.vehicle.id, marker);
         }
     });
+
+    // if we have set a certain vehicleId in URL params
+    // try to select the corresponding marker and fly map to this vehicle
+    let params = new URLSearchParams(window.location.search);
+    let vehicleId = params.get('vehicleId');
+    
+    if (vehicleMarkersMap.has(vehicleId)) {
+        let vehicleMarker = vehicleMarkersMap.get(vehicleId);
+
+        map.easeTo({
+            center: vehicleMarker.getLngLat(),
+            zoom: 16
+        });
+    }
 }
 </script>
 {% endmacro %}
