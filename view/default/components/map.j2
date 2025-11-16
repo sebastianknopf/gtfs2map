@@ -176,7 +176,7 @@ function routeVehiclePositionsCallback(positions) {
             if (vehicleTripId && window.tripUpdates) {
                 let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
                 if (tripUpdate) {
-                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate);
+                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate, p);
                 }
             }
         } else {
@@ -205,7 +205,7 @@ function routeVehiclePositionsCallback(positions) {
             if (vehicleTripId && window.tripUpdates) {
                 let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
                 if (tripUpdate) {
-                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate);
+                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate, p);
                 }
             }
 

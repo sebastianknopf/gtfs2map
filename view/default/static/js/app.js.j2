@@ -125,6 +125,26 @@ async function fetchGtfsRealtimeData(url, headers) {
     return obj.entity;
 }
 
+function filterTripUpdates(updates, routeIds) {
+    return updates.filter(u => {
+        if (u.trip_update.trip == null) {
+            return false;
+        }
+
+        return u.trip_update.trip != null && routeIds.includes(u.trip_update.trip.route_id);
+    });
+}
+
+async function updateTripUpdates(url, routeIds, tripUpdatesCallback) {
+    let updates = await fetchGtfsRealtimeData(url, null);
+
+    window.tripUpdates = filterTripUpdates(updates, routeIds);
+
+    if (tripUpdatesCallback) {
+        tripUpdatesCallback(window.tripUpdates);
+    }
+}
+
 function filterVehiclePositions(positions, routeIds) {
     return positions.filter(p => {
         if (p.vehicle.trip == null) {
@@ -147,36 +167,16 @@ async function updateVehiclePositions(url, routeIds, vehiclePositionsCallback) {
     }
 }
 
-function filterTripUpdates(updates, routeIds) {
-    return updates.filter(u => {
-        if (u.trip_update.trip == null) {
-            return false;
-        }
-
-        return u.trip_update.trip != null && routeIds.includes(u.trip_update.trip.route_id);
-    });
-}
-
-async function updateTripUpdates(url, routeIds, tripUpdatesCallback) {
-    let updates = await fetchGtfsRealtimeData(url, null);
-
-    window.tripUpdates = filterTripUpdates(updates, routeIds);
-
-    if (tripUpdatesCallback) {
-        tripUpdatesCallback(window.tripUpdates);
-    }
-}
-
-function initializeRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
+async function initializeRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
     if (!realtimeUpdateInterval) {
         const updateInterval = 10 * 1000;
 
-        updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
-        updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
+        await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
+        await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
 
-        realtimeUpdateInterval = setInterval(() => {
-            updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
-            updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
+        realtimeUpdateInterval = setInterval(async () => {
+            await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
+            await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
         }, updateInterval);
     }
 }
@@ -231,7 +231,7 @@ function createVehicleMarkerContainer(vehiclePosition, staticAssetsDir) {
     return markerContainer;
 }
 
-function updateVehicleMarkerTripData(container, tripUpdate) {
+function updateVehicleMarkerTripData(container, tripUpdate, vehiclePosition) {
     let tripInfoDiv = container.querySelector('.app-vehicle-trip-info');
     if (tripInfoDiv) {
         if (tripUpdate) {
@@ -242,8 +242,6 @@ function updateVehicleMarkerTripData(container, tripUpdate) {
                     routeNameSpan.innerHTML = `<b>${routeProperties.route_short_name}</b>`;
                 } else if (routeProperties && routeProperties.route_long_name != null) {
                     routeNameSpan.innerHTML = `<b>${routeProperties.route_long_name}</b>`;
-                } else {
-                    routeNameSpan.innerHTML = '<b>E</b>';
                 }
 
                 routeNameSpan.style.background = routeProperties.route_color;
@@ -252,7 +250,15 @@ function updateVehicleMarkerTripData(container, tripUpdate) {
 
             let delayInfoSpan = tripInfoDiv.querySelector('.app-trip-info-delay');
             if (delayInfoSpan) {
+                // assume that the first stopTimeUpdate in the tripUpdate is the next stop
+                // if our vehicle position has a stop_id and current_stop_sequence, use this to pick the correct stopTimeUpdate
                 let stopTimeUpdate = tripUpdate.trip_update.stop_time_update[0];
+                if (vehiclePosition.vehicle.stop_id != null && vehiclePosition.vehicle.current_stop_sequence != null) {
+                    let stopTimeUpdateOverride = tripUpdate.trip_update.stop_time_update.find(s => s.stop_id == vehiclePosition.vehicle.stop_id && (s.stop_sequence == 0 || s.stop_sequence == vehiclePosition.vehicle.stop_sequence));
+                    if (stopTimeUpdateOverride) {
+                        stopTimeUpdate = stopTimeUpdateOverride;
+                    }
+                }
 
                 if (stopTimeUpdate && (stopTimeUpdate.departure.delay != null || stopTimeUpdate.arrival.delay != null)) {
                     let delayMinutes = getDelayMinutes(stopTimeUpdate.departure.delay || stopTimeUpdate.arrival.delay);
