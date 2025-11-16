@@ -73,6 +73,12 @@ function getStopProperties(stopId) {
     }
 }
 
+function getDelayMinutes(delaySeconds) {
+    let delayMinutes = delaySeconds / 60.0;
+
+    return Math.round(delayMinutes / 0.1) * 0.1;
+}
+
 function getVehicleBearing(lngLatA, lngLatB) {
     const lat1 = lngLatA.lat;
     const lon1 = lngLatA.lng;
@@ -198,30 +204,79 @@ function createVehicleMarkerContainer(vehiclePosition, staticAssetsDir) {
 
     let markerVehicleDirectionArrowDiv = document.createElement('div');
     markerVehicleDirectionArrowDiv.innerHTML = `<svg width="24" height="10" viewBox="0 0 24 10" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0 L22 10 Q12 6, 2 10 Z" fill="#03a535ff" />
+        <path d="M12 0 L22 10 Q12 6, 2 10 Z" fill="#444" />
     </svg>`;
     markerVehicleDirectionArrowWrapperDiv.appendChild(markerVehicleDirectionArrowDiv);
 
     let tripInfoDiv = document.createElement('div');
     tripInfoDiv.classList.add('w3-round');
     tripInfoDiv.classList.add('w3-small');
+    tripInfoDiv.classList.add('w3-hide');
     tripInfoDiv.classList.add('app-vehicle-trip-info');
     markerContainer.appendChild(tripInfoDiv);
 
+    let tripInfoBackgroundSpan = document.createElement('span');
+    tripInfoDiv.appendChild(tripInfoBackgroundSpan);
+
     let routeNameSpan = document.createElement('span');
     routeNameSpan.classList.add('w3-round');
-    routeNameSpan.setAttribute('style', 'padding:2px;color:#fff;background:#03a535ff;');
-    routeNameSpan.innerHTML = '<b>720</b>';
-    tripInfoDiv.appendChild(routeNameSpan);
+    routeNameSpan.classList.add('app-trip-info-route-name');
+    tripInfoBackgroundSpan.appendChild(routeNameSpan);
 
     let delayInfoSpan = document.createElement('span');
     delayInfoSpan.classList.add('w3-round');
-    delayInfoSpan.classList.add('w3-white');
-    delayInfoSpan.setAttribute('style', 'padding:2px;color:#ff0000;');
-    delayInfoSpan.innerHTML = '<b>+2</b>';
-    tripInfoDiv.appendChild(delayInfoSpan);
+    delayInfoSpan.classList.add('app-trip-info-delay');
+    tripInfoBackgroundSpan.appendChild(delayInfoSpan);
 
     return markerContainer;
+}
+
+function updateVehicleMarkerTripData(container, tripUpdate) {
+    let tripInfoDiv = container.querySelector('.app-vehicle-trip-info');
+    if (tripInfoDiv) {
+        if (tripUpdate) {
+            let routeNameSpan = tripInfoDiv.querySelector('.app-trip-info-route-name');
+            if (routeNameSpan) {
+                let routeProperties = getRouteProperties(tripUpdate.trip_update.trip.route_id);
+                if (routeProperties && routeProperties.route_short_name != null) {
+                    routeNameSpan.innerHTML = `<b>${routeProperties.route_short_name}</b>`;
+                } else if (routeProperties && routeProperties.route_long_name != null) {
+                    routeNameSpan.innerHTML = `<b>${routeProperties.route_long_name}</b>`;
+                } else {
+                    routeNameSpan.innerHTML = '<b>E</b>';
+                }
+
+                routeNameSpan.style.background = routeProperties.route_color;
+                routeNameSpan.style.color = routeProperties.route_text_color;
+            }
+
+            let delayInfoSpan = tripInfoDiv.querySelector('.app-trip-info-delay');
+            if (delayInfoSpan) {
+                let stopTimeUpdate = tripUpdate.trip_update.stop_time_update[0];
+
+                if (stopTimeUpdate && (stopTimeUpdate.departure.delay != null || stopTimeUpdate.arrival.delay != null)) {
+                    let delayMinutes = getDelayMinutes(stopTimeUpdate.departure.delay || stopTimeUpdate.arrival.delay);
+
+                    if (delayMinutes >= 0) {
+                        delayInfoSpan.innerHTML = `<b>+${delayMinutes}</b>`;
+                    } else {
+                        delayInfoSpan.innerHTML = `<b>${delayMinutes}</b>`;
+                    }
+
+                    delayInfoSpan.style.background = '#ffffff';
+                    if (Math.abs(delayMinutes) < 3 && delayMinutes >= 0) {
+                        delayInfoSpan.style.color = '#00ff00';
+                    } else {
+                        delayInfoSpan.style.color = '#ff0000';
+                    }
+                }
+            }
+
+            tripInfoDiv.classList.remove('w3-hide');
+        } else {
+            tripInfoDiv.classList.add('w3-hide');
+        }
+    }
 }
 
 function filterServiceAlerts(alerts, routeId) {

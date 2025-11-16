@@ -90,3 +90,20 @@ div.app-vehicle-direction-arrow-wrapper div {
 div.app-vehicle-trip-info {
 	margin-top: 12px;
 }
+
+div.app-vehicle-trip-info > span {
+	border: 4px solid #fff;
+	border-radius: 4px;
+}
+
+span.app-trip-info-route-name {
+	padding: 2px;
+}
+
+span.app-trip-info-delay {
+	padding: 2px;
+}
+
+.hide-by-zoom {
+	display: none !important;
+}

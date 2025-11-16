@@ -119,7 +119,7 @@ map.on('zoom', function () {
 
         let iconWrapper = markerElement.querySelector('.app-vehicle-img-wrapper');
         if (iconWrapper) {
-            if (zoom < 11) {
+            if (zoom < 14) {
                 iconWrapper.style.transform = 'scale(0.6)';
             } else {
                 iconWrapper.style.transform = '';
@@ -128,10 +128,10 @@ map.on('zoom', function () {
 
         let tripInfo = markerElement.querySelector('.app-vehicle-trip-info');
         if (tripInfo) {
-            if (zoom < 13) {
-                tripInfo.classList.add('w3-hide');
+            if (zoom < 14) {
+                tripInfo.classList.add('hide-by-zoom');
             } else {
-                tripInfo.classList.remove('w3-hide');
+                tripInfo.classList.remove('hide-by-zoom');
             }
         }
     });
@@ -171,6 +171,14 @@ function routeVehiclePositionsCallback(positions) {
                     console.log('Not Found');
                 }
             }
+
+            let vehicleTripId = p.vehicle.trip != null ? p.vehicle.trip.trip_id : null;
+            if (vehicleTripId && window.tripUpdates) {
+                let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
+                if (tripUpdate) {
+                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate);
+                }
+            }
         } else {
             let markerContainer = createVehicleMarkerContainer(p, '{{ static_assets_dir }}');
 
@@ -192,6 +200,14 @@ function routeVehiclePositionsCallback(positions) {
                     zoom: 16
                 });
             });
+
+            let vehicleTripId = p.vehicle.trip != null ? p.vehicle.trip.trip_id : null;
+            if (vehicleTripId && window.tripUpdates) {
+                let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
+                if (tripUpdate) {
+                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate);
+                }
+            }
 
             vehicleMarkersMap.set(p.vehicle.vehicle.id, marker);
         }
