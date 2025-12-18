@@ -16,12 +16,12 @@
 <div>
     {% set route_long_name = route|properties('route_long_name') %}
     {% set route_desc = route|properties('route_desc') %}
-    {% if route_long_name is not none and route_desc is none %}
+    {% if route_long_name is not none and route_desc is not none %}
+        <span class="w3-large">{{ route_long_name }}</span><br />
+        <span class="w3-medium w3-text-gray app-route-desc">{{ route_desc }}</span>
+    {% elif route_long_name is not none and route_desc is none %}
         <span class="w3-large app-route-desc">{{ route_long_name }}</span>
     {% elif route_long_name is none and route_desc is not none %}
         <span class="w3-large app-route-desc">{{ route_desc }}</span>
-    {% else %}
-        <span class="w3-large">{{ route_long_name }}</span><br />
-        <span class="w3-medium w3-text-gray app-route-desc">{{ route_desc }}</span>
     {% endif %}
 </div>

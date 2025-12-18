@@ -75,8 +75,9 @@ function getStopProperties(stopId) {
 
 function getDelayMinutes(delaySeconds) {
     let delayMinutes = delaySeconds / 60.0;
-
-    return Math.round(delayMinutes / 0.1) * 0.1;
+    let roundedDelay = Math.round(delayMinutes / 0.5) * 0.5;
+    
+    return Number(roundedDelay.toFixed(1));
 }
 
 function getVehicleBearing(lngLatA, lngLatB) {
@@ -244,8 +245,8 @@ function updateVehicleMarkerTripData(container, tripUpdate, vehiclePosition) {
                     routeNameSpan.innerHTML = `<b>${routeProperties.route_long_name}</b>`;
                 }
 
-                routeNameSpan.style.background = routeProperties.route_color;
-                routeNameSpan.style.color = routeProperties.route_text_color;
+                routeNameSpan.style.background = routeProperties.route_color || '{{ APP_TEMPLATE_COLOR }}';
+                routeNameSpan.style.color = routeProperties.route_text_color || '{{ APP_TEMPLATE_COLOR|text(0) }}';
             }
 
             let delayInfoSpan = tripInfoDiv.querySelector('.app-trip-info-delay');
@@ -271,9 +272,9 @@ function updateVehicleMarkerTripData(container, tripUpdate, vehiclePosition) {
 
                     delayInfoSpan.style.background = '#ffffff';
                     if (Math.abs(delayMinutes) < 3 && delayMinutes >= 0) {
-                        delayInfoSpan.style.color = '#00ff00';
+                        delayInfoSpan.style.color = '#00b700ff';
                     } else {
-                        delayInfoSpan.style.color = '#ff0000';
+                        delayInfoSpan.style.color = '#ff0000ff';
                     }
                 }
             }

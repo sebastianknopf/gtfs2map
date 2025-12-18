@@ -1,4 +1,4 @@
-{% macro create(static_assets_dir, route_ids = none) %}
+{% macro create(static_assets_dir, template_color, route_ids = none) %}
 <script>
 // create container for visual objects in the map
 const vehicleMarkersMap = new Map();
@@ -66,7 +66,12 @@ map.on('load', function () {
         'type': 'line',
         'source': 'routes',
         'paint': {
-            'line-color': ['get', 'route_color'],
+        'line-color': [
+                'case',
+                ['has', 'route_color'],
+                ['get', 'route_color'],
+                '{{ template_color }}'
+            ],
             'line-width': 8
         },
         'layout': {
