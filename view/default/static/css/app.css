@@ -66,8 +66,12 @@ span.app-route-desc {
 
 div.app-vehicle-img-wrapper {
 	position: relative;
+	left: 50%;
+	transform: translateX(-50%);
 	padding: 8px;
 	cursor: pointer;
+	width: 48px;
+	height: 48px;
 }
 
 div.app-vehicle-direction-arrow-wrapper {
