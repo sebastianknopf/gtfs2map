@@ -10,9 +10,9 @@ def cli():
     pass
 
 @cli.command()
-@click.option('--data', '-d', help='Filename of the input GeoJSON file.')
-@click.option('--template', '-t', help='Directory where the template files are located.')
-@click.option('--output', '-o', default='./output', help='Output directory for the result application files.')
+@click.option('--data', '-d', default='/data/geojson/gtfsrtmapfx.geojson', help='Filename of the input GeoJSON file.')
+@click.option('--template', '-t', default='/data/j2/input', help='Directory where the template files are located.')
+@click.option('--output', '-o', default='/data/html/output', help='Output directory for the result application files.')
 def render(data: str, template: str, output: str):
     template_directory: str = template
     output_directory: str = output

@@ -16,7 +16,7 @@
         {
             "label": "render",
             "type": "shell",
-            "command": "docker compose run --rm --build gtfsrtmapfx render -d /data/geojson/gtfsrtmapfx.geojson -t /data/j2/input -o /data/html/output",
+            "command": "docker compose run --rm --build gtfsrtmapfx render",
             "problemMatcher": []
         }
     ],
