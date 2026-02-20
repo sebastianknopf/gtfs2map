@@ -10,12 +10,17 @@ The `default` layout is highly configurable and provides an optimal entry point 
 
 ## Configuration & Running
 There're some basic configurations affecting the behaviour of `gtfsrtmapfx`:
+
+| Variable | Description |
+| -- | -- |
 | GTFS_STATIC_URL | URL to the static GTFS feed which should be used for rendering the static data. |
 | GTFS_REALTIME_TRIP_UPDATES_URL | URL for the GTFS-RT trip updates consumed in the frontend. |
 | GTFS_REALTIME_VEHICLE_POSITIONS_URL | URL to the GTFS-RT vehicle positions consumed in the frontend. |
 | GTFS_REALTIME_SERVICE_ALERTS_URL | URL to the GTFS-RT service alerts consumed in the frontend. |
 
 The variables starting with `APP_TEMPLATE_` are also available in the Jinja2 templates for rendering:
+| Variable | Description |
+| --- | --- |
 | APP_TEMPLATE_ID | Name of the template for the resulting map. |
 | APP_TEMPLATE_TITLE | Title for the single pages in the frontend. |
 | APP_TEMPLATE_COLOR | Main theme color for the pages in the frontend. |
