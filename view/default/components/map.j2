@@ -101,6 +101,7 @@ map.on('load', function () {
 
     if (vehicleId == null || !vehicleMarkersMap.has(vehicleId)) {
         const bounds = getGeoJsonBounds(routesGeojson);
+        
         map.fitBounds(bounds, {
             padding: 20,
             duration: 1000,
@@ -204,6 +205,8 @@ function routeVehiclePositionsCallback(positions) {
                     center: marker.getLngLat(),
                     zoom: 16
                 });
+
+                showVehicleInfoDialog('1', '#ff0000', '#ffffff', 'Durlach Schlossplatz', 'Friedrichschule', '0', '2');
             });
 
             let vehicleTripId = p.vehicle.trip != null ? p.vehicle.trip.trip_id : null;
@@ -230,6 +233,8 @@ function routeVehiclePositionsCallback(positions) {
             center: vehicleMarker.getLngLat(),
             zoom: 16
         });
+
+        showVehicleInfoDialog('1', '#ff0000', '#ffffff', 'Durlach Schlossplatz', 'Friedrichschule', '0', '2');
     }
 }
 </script>

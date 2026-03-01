@@ -1,0 +1,35 @@
+<div id="app-vehicle-info-dialog" class="w3-card w3-padding w3-white w3-hide">
+    <div class="app-vehicle-info-dialog-wrapper" id="app-vehicle-info-matched">
+        <div>
+            <div class="w3-large app-route-name" id="app-vehicle-info-route-name" style="background-color:#ff0000;color:#ffffff">720</div>
+        </div>
+        <div>
+            <span class="w3-large" id="app-vehicle-info-trip-headsign">FinalStopName</span>
+        </div>
+        <div id="app-vehicle-info-dialog-close" onclick="hideVehicleInfoDialog();">
+            <span class="w3-text-gray w3-bold">&#x2715;</span>
+        </div>
+    </div>
+    <div class="app-vehicle-info-dialog-wrapper w3-hide" id="app-vehicle-info-unmatched">
+        <div>
+            <img src="static/img/realtime.svg" width="32" height="32" />
+        </div>
+        <div>
+            <span class="w3-large" id="app-vehicle-info-vehicle-label">TE-ST4</span>
+        </div>
+        <div id="app-vehicle-info-dialog-close" onclick="hideVehicleInfoDialog();">
+            <span class="w3-text-gray w3-bold">&#x2715;</span>
+        </div>
+    </div>
+    <div class="app-vehicle-info-dialog-wrapper" style="gap:5px;" id="app-vehicle-info-next-stop">
+        <span class="w3-small w3-padding-16">Nächste Haltestelle</span>
+        <span class="w3-small w3-padding-16 w3-bold" id="app-vehicle-info-next-stop-name">Musterstadt</span>
+        <span class="w3-small w3-padding-16"> in </span>
+        <span class="w3-small w3-padding-16" id="app-vehicle-info-next-stop-duration">43s</span>
+    </div>
+    <div class="app-vehicle-info-dialog-wrapper" style="gap:5px;">
+        <span class="w3-small w3-text-gray">Letztes Update vor</span>
+        <span class="w3-small w3-text-gray" id="app-vehicle-info-last-update-seconds">0</span>
+        <span class="w3-small w3-text-gray">Sekunden</span>
+    </div>
+</div>

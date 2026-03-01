@@ -108,6 +108,31 @@ span.app-trip-info-delay {
 	padding: 2px;
 }
 
+div#app-vehicle-info-dialog {
+	position: absolute;
+	bottom: 60px;
+	left: 420px;
+	right: 0;
+	margin-left: auto;
+	margin-right: auto;
+	padding-top: 16px !important;
+	width: fit-content;
+	max-width: 450px;
+}
+
+div#app-vehicle-info-dialog-close {
+	cursor: pointer;
+	font-size: 18px;
+	margin-left: auto;
+}
+
+div.app-vehicle-info-dialog-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 15px;
+}
+
 .hide-by-zoom {
 	display: none !important;
 }
