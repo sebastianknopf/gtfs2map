@@ -206,7 +206,36 @@ function routeVehiclePositionsCallback(positions) {
                     zoom: 16
                 });
 
-                showVehicleInfoDialog('1', '#ff0000', '#ffffff', 'Durlach Schlossplatz', 'Friedrichschule', '0', '2');
+                
+                let tripUpdate = findTripUpdate(p.vehicle.vehicle.id);
+                let vehiclePosition = findVehiclePosition(p.vehicle.vehicle.id);
+
+                let routeObject = null;
+                let nextStopObject = null;
+                if (tripUpdate != null) {
+                    let routeProperties = getRouteProperties(tripUpdate.trip_update.trip.route_id);
+                    let nextStopProperties = getStopProperties(tripUpdate.trip_update.stop_time_update[0].stop_id);
+                    let lastStopProperties = getStopProperties(tripUpdate.trip_update.stop_time_update[tripUpdate.trip_update.stop_time_update.length - 1].stop_id);
+
+                    routeObject = {
+                        shortName: routeProperties.route_short_name != null ? routeProperties.route_short_name : routeProperties.route_long_name,
+                        color: '#' + routeProperties.route_color,
+                        textColor: '#' + routeProperties.route_text_color,
+                        directionText: lastStopProperties.stop_name
+                    };
+
+                    nextStopObject = {
+                        stopName: nextStopProperties.stop_name,
+                        arrivalTimestamp: tripUpdate.trip_update.stop_time_update[0].arrival != null ? tripUpdate.trip_update.stop_time_update[0].arrival.time : tripUpdate.trip_update.stop_time_update[0].departure.time
+                    };
+                }
+
+                showVehicleInfoDialog(
+                    routeObject, 
+                    nextStopObject, 
+                    p.vehicle.vehicle.label != null ? p.vehicle.vehicle.label : p.vehicle.vehicle.id, 
+                    p.vehicle.timestamp
+                );
             });
 
             let vehicleTripId = p.vehicle.trip != null ? p.vehicle.trip.trip_id : null;
@@ -225,8 +254,10 @@ function routeVehiclePositionsCallback(positions) {
     // try to select the corresponding marker and fly map to this vehicle
     let params = new URLSearchParams(window.location.search);
     let vehicleId = params.get('vehicleId');
+    let tripUpdate = findTripUpdate(vehicleId);
+    let vehiclePosition = findVehiclePosition(vehicleId);
     
-    if (vehicleMarkersMap.has(vehicleId)) {
+    if (vehicleMarkersMap.has(vehicleId) && vehiclePosition != null) {
         let vehicleMarker = vehicleMarkersMap.get(vehicleId);
 
         map.easeTo({
@@ -234,7 +265,32 @@ function routeVehiclePositionsCallback(positions) {
             zoom: 16
         });
 
-        showVehicleInfoDialog('1', '#ff0000', '#ffffff', 'Durlach Schlossplatz', 'Friedrichschule', '0', '2');
+        let routeObject = null;
+        let nextStopObject = null;
+        if (tripUpdate != null) {
+            let routeProperties = getRouteProperties(tripUpdate.trip_update.trip.route_id);
+            let nextStopProperties = getStopProperties(tripUpdate.trip_update.stop_time_update[0].stop_id);
+            let lastStopProperties = getStopProperties(tripUpdate.trip_update.stop_time_update[tripUpdate.trip_update.stop_time_update.length - 1].stop_id);
+
+            routeObject = {
+                shortName: routeProperties.route_short_name != null ? routeProperties.route_short_name : routeProperties.route_long_name,
+                color: '#' + routeProperties.route_color,
+                textColor: '#' + routeProperties.route_text_color,
+                directionText: lastStopProperties.stop_name
+            };
+
+            nextStopObject = {
+                stopName: nextStopProperties.stop_name,
+                arrivalTimestamp: tripUpdate.trip_update.stop_time_update[0].arrival != null ? tripUpdate.trip_update.stop_time_update[0].arrival.time : tripUpdate.trip_update.stop_time_update[0].departure.time
+            };
+        }
+
+        showVehicleInfoDialog(
+            routeObject, 
+            nextStopObject, 
+            vehiclePosition.vehicle.vehicle.label != null ? vehiclePosition.vehicle.vehicle.label : vehiclePosition.vehicle.vehicle.id, 
+            vehiclePosition.vehicle.timestamp
+        );
     }
 }
 </script>

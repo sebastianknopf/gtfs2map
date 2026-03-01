@@ -36,24 +36,41 @@ function hideMenu() {
 	document.getElementById('app-action-close-menu').classList.add('w3-hide');
 }
 
-function showVehicleInfoDialog(routeShortName, routeColor, routeTextColor, tripHeadsign, nextStopName, nextStopDistance, lastUpdateSeconds) {
-    if (tripHeadsign != null) {
-        document.getElementById('app-vehicle-info-route-name').textContent = routeShortName;
-        document.getElementById('app-vehicle-info-route-name').style.backgroundColor = routeColor;
-        document.getElementById('app-vehicle-info-route-name').style.color = routeTextColor;
+function showVehicleInfoDialog(route, nextStop, vehicleLabel, lastUpdateTimestamp) {    
+    
+    let currentTimestamp = Math.floor(Date.now() / 1000);
+    let lastUpdateSeconds = currentTimestamp - lastUpdateTimestamp;
+    
+    if (route != null && nextStop != null) {
+        let durationToArrival = Math.max(Math.round(((nextStop.arrivalTimestamp - currentTimestamp) / 60.0) / 0.5) * 0.5, 0);
+        
+        document.getElementById('app-vehicle-info-route-name').textContent = route.shortName;
+        document.getElementById('app-vehicle-info-route-name').style.backgroundColor = route.color;
+        document.getElementById('app-vehicle-info-route-name').style.color = route.textColor;
 
-        document.getElementById('app-vehicle-info-trip-headsign').textContent = tripHeadsign;
-        document.getElementById('app-vehicle-info-next-stop-name').textContent = nextStopName;
-        document.getElementById('app-vehicle-info-next-stop-duration').textContent = nextStopDistance;
-        document.getElementById('app-vehicle-info-last-update-seconds').textContent = lastUpdateSeconds;
+        document.getElementById('app-vehicle-info-trip-headsign').textContent = route.directionText;
+        document.getElementById('app-vehicle-info-next-stop-name').textContent = nextStop.stopName;
+        document.getElementById('app-vehicle-info-next-stop-duration').textContent = durationToArrival + "min";
 
         document.getElementById('app-vehicle-info-next-stop').classList.remove('w3-hide');
         document.getElementById('app-vehicle-info-matched').classList.remove('w3-hide');
         document.getElementById('app-vehicle-info-unmatched').classList.add('w3-hide');
     } else {
+        document.getElementById('app-vehicle-info-vehicle-label').textContent = vehicleLabel;
+
+        document.getElementById('app-vehicle-info-next-stop').classList.add('w3-hide');
         document.getElementById('app-vehicle-info-matched').classList.add('w3-hide');
         document.getElementById('app-vehicle-info-unmatched').classList.remove('w3-hide');
     }
+
+    if (lastUpdateSeconds < 60) {
+        lastUpdateSeconds = lastUpdateSeconds + "s";
+    } else if (lastUpdateSeconds < 3600) {
+        lastUpdateSeconds = Math.round(lastUpdateSeconds / 60.0) + "min";
+    } else {
+        lastUpdateSeconds = Math.round(lastUpdateSeconds / 3600.0) + "h";
+    }
+    document.getElementById('app-vehicle-info-last-update-seconds').textContent = lastUpdateSeconds;
     
     document.getElementById('app-vehicle-info-dialog').classList.remove('w3-hide');
 }
@@ -172,6 +189,10 @@ async function updateTripUpdates(url, routeIds, tripUpdatesCallback) {
     }
 }
 
+function findTripUpdate(vehicleId) {
+    return window.tripUpdates.find(u => u.trip_update.vehicle != null && u.trip_update.vehicle.id == vehicleId);
+}
+
 function filterVehiclePositions(positions, routeIds) {
     return positions.filter(p => {
         if (p.vehicle.trip == null) {
@@ -192,6 +213,10 @@ async function updateVehiclePositions(url, routeIds, vehiclePositionsCallback) {
     if (vehiclePositionsCallback) {
         vehiclePositionsCallback(window.vehiclePositions);
     }
+}
+
+function findVehiclePosition(vehicleId) {
+    return window.vehiclePositions.find(p => p.vehicle.vehicle.id == vehicleId);
 }
 
 async function initializeRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
