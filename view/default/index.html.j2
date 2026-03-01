@@ -22,9 +22,11 @@
         {% include "components/agency_section.j2" %}
     {% endfor %}
 </aside>
-<div id="app-map">
+<div id="app-map-wrapper">
+    <div id="app-map">
+    </div>
+    {% include "components/vehicle_info_dialog.j2" %}
 </div>
-{% include "components/vehicle_info_dialog.j2" %}
 {% endblock %}
 
 {% block scripts %}

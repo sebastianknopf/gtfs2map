@@ -28,8 +28,14 @@ aside {
 	overflow-y: auto;
 }
 
-div#app-map {
+div#app-map-wrapper {
+	position: relative;
 	flex: 1 1 auto;
+}
+
+div#app-map {
+	width: 100%;
+	height: 100%;
 }
 
 li.app-route-item {
@@ -111,13 +117,13 @@ span.app-trip-info-delay {
 div#app-vehicle-info-dialog {
 	position: absolute;
 	bottom: 60px;
-	left: 420px;
+	left: 0;
 	right: 0;
 	margin-left: auto;
 	margin-right: auto;
 	padding-top: 16px !important;
 	width: fit-content;
-	max-width: 450px;
+	max-width: 95%;
 }
 
 div#app-vehicle-info-dialog-close {
@@ -131,6 +137,10 @@ div.app-vehicle-info-dialog-wrapper {
 	align-items: center;
 	justify-content: flex-start;
 	gap: 15px;
+}
+
+span.app-vehicle-info-dialog-label {
+	font-size: 0.95rem;
 }
 
 .hide-by-zoom {

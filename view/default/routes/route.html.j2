@@ -40,8 +40,11 @@
         </div>
     </section>
 </aside>
-<div id="app-map"></div>
-{% include "components/vehicle_info_dialog.j2" %}
+<div id="app-map-wrapper">
+    <div id="app-map">
+    </div>
+    {% include "components/vehicle_info_dialog.j2" %}
+</div>
 {% endblock %}
 
 {% block scripts %}
