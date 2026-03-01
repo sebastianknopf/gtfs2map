@@ -8,9 +8,13 @@ const map = new maplibregl.Map({
     container: 'app-map',
     style: 'https://tiles.openfreemap.org/styles/positron',
     center: [10.5, 51.0],
-    zoom: 8
+    zoom: 8,
+    attributionControl: false
 });
 
+map.addControl(new maplibregl.AttributionControl({
+    compact: true
+}));
 map.addControl(new maplibregl.NavigationControl(), 'top-right');
 map.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
