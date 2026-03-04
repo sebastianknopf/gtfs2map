@@ -115,10 +115,7 @@ map.on('load', function () {
 });
 
 map.on('dragstart', function () {
-    let params = new URLSearchParams(window.location.search);
-    params.delete('vehicleId');
-
-    window.history.replaceState({}, '', window.location.pathname + '?' + params);
+    clearUrlParameters();
 });
 
 map.on('zoom', function () {
@@ -155,6 +152,8 @@ function routeVehiclePositionsCallback(positions) {
         if (!vehicleIds.includes(vehicleId)) {
             marker.remove();
             vehicleMarkersMap.delete(vehicleId);
+
+            hideVehicleInfoDialog();
         }
     }
 
@@ -177,18 +176,12 @@ function routeVehiclePositionsCallback(positions) {
                 let markerVehicleDirection = marker.getElement().querySelector('.app-vehicle-direction-arrow-wrapper');
                 if (markerVehicleDirection) {
                     markerVehicleDirection.style.transform = `translate(-50%, -50%) rotate(${bearing}deg)`
-                } else {
-                    console.log('Not Found');
                 }
             }
 
             let vehicleTripId = p.vehicle.trip != null ? p.vehicle.trip.trip_id : null;
-            if (vehicleTripId && window.tripUpdates) {
-                let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
-                if (tripUpdate) {
-                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate, p);
-                }
-            }
+            let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
+            updateVehicleMarkerTripData(marker.getElement(), tripUpdate, p);
         } else {
             let markerContainer = createVehicleMarkerContainer(p, '{{ static_assets_dir }}');
 
@@ -223,8 +216,8 @@ function routeVehiclePositionsCallback(positions) {
 
                     routeObject = {
                         shortName: routeProperties.route_short_name != null ? routeProperties.route_short_name : routeProperties.route_long_name,
-                        color: '#' + routeProperties.route_color,
-                        textColor: '#' + routeProperties.route_text_color,
+                        color: routeProperties.route_color,
+                        textColor: routeProperties.route_text_color,
                         directionText: lastStopProperties.stop_name
                     };
 
@@ -243,12 +236,8 @@ function routeVehiclePositionsCallback(positions) {
             });
 
             let vehicleTripId = p.vehicle.trip != null ? p.vehicle.trip.trip_id : null;
-            if (vehicleTripId && window.tripUpdates) {
-                let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
-                if (tripUpdate) {
-                    updateVehicleMarkerTripData(marker.getElement(), tripUpdate, p);
-                }
-            }
+            let tripUpdate = window.tripUpdates.find(u => u.trip_update.trip.trip_id == vehicleTripId);
+            updateVehicleMarkerTripData(marker.getElement(), tripUpdate, p);
 
             vehicleMarkersMap.set(p.vehicle.vehicle.id, marker);
         }
@@ -278,8 +267,8 @@ function routeVehiclePositionsCallback(positions) {
 
             routeObject = {
                 shortName: routeProperties.route_short_name != null ? routeProperties.route_short_name : routeProperties.route_long_name,
-                color: '#' + routeProperties.route_color,
-                textColor: '#' + routeProperties.route_text_color,
+                color: routeProperties.route_color,
+                textColor: routeProperties.route_text_color,
                 directionText: lastStopProperties.stop_name
             };
 

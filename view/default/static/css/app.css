@@ -144,6 +144,10 @@ div.app-vehicle-info-dialog-wrapper {
 	gap: 15px;
 }
 
+div.app-vehicle-info-dialog-row {
+	margin-top: 10px;
+}
+
 span.app-vehicle-info-dialog-label {
 	font-size: 0.95rem;
 }

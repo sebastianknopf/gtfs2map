@@ -25,7 +25,8 @@
 <div id="app-map-wrapper">
     <div id="app-map">
     </div>
-    {% include "components/vehicle_info_dialog.j2" %}
+    {% import "components/vehicle_info_dialog.j2" as vehicle_info_dialog %}
+    {{ vehicle_info_dialog.create('static') }}
 </div>
 {% endblock %}
 
