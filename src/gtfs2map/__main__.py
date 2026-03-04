@@ -1,8 +1,8 @@
 import click
 import logging
 
-from gtfsrtmapfx.renderer import JinjaRenderer
-from gtfsrtmapfx.context import GeoJsonContext
+from gtfs2map.renderer import JinjaRenderer
+from gtfs2map.context import GeoJsonContext
 
 
 @click.group()
@@ -10,7 +10,7 @@ def cli():
     pass
 
 @cli.command()
-@click.option('--data', '-d', default='/data/geojson/gtfsrtmapfx.geojson', help='Filename of the input GeoJSON file.')
+@click.option('--data', '-d', default='/data/geojson/gtfs2map.geojson', help='Filename of the input GeoJSON file.')
 @click.option('--template', '-t', default='/data/j2/input', help='Directory where the template files are located.')
 @click.option('--output', '-o', default='/data/html/output', help='Output directory for the result application files.')
 def render(data: str, template: str, output: str):

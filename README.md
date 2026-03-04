@@ -1,15 +1,15 @@
-# gtfsrtmapfx
+# gtfs2map
 Utility for creating beautiful, usable maps visualizing GTFS-RT data. Based on:
 
 - [gtfs-to-geojson](https://github.com/BlinkTagInc/gtfs-to-geojson) for generating geospatial data out of a GTFS feed
 - [Jinja2](https://github.com/pallets/jinja) as templating engine
 
-`gtfsrtmapfx` stands for `GTFS realtime map functions` and provides an integrated stack for generating maps based on static GTFS data and then display GTFS-RT data inside this map. The main purporse is displaying vehicle positons, but also trip updates and service alerts are supported. During the rendering process, static HTML pages are generated which can be uploaded to each web server.
+`gtfs2map` stands for `GTFS to Map` and provides an integrated stack for generating maps based on static GTFS data and then display GTFS-RT data inside this map. The main purporse is displaying vehicle positons, but also trip updates and service alerts are supported. During the rendering process, static HTML pages are generated which can be uploaded to each web server.
 
 The `default` layout is highly configurable and provides an optimal entry point for starting with realtime maps. It uses no resource consuming JavaScript frameworks, but only basic CSS and JavaScript. If you want to provide your own theme, create a new folder below the `view` directory and set your theme in the configuration.
 
 ## Configuration & Running
-There're some basic configurations affecting the behaviour of `gtfsrtmapfx`:
+There're some basic configurations affecting the behaviour of `gtfs2map`:
 
 | Variable | Description |
 | -- | -- |
@@ -33,7 +33,7 @@ The variables starting with `APP_TEMPLATE_` are also available in the Jinja2 tem
 For rendering your map, using the pre-configured docker compose stack is strictly recommended. After selecting (or creating your own) layout by setting `APP_TEMPLATE_ID`, simply run:
 
 ```bash
-docker compose run --rm gtfsrtmapfx render
+docker compose run --rm gtfs2map render
 ```
 
 ## License

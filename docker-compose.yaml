@@ -1,5 +1,5 @@
 services:
-  gtfsrtmapfx:
+  gtfs2map:
     build: .
     environment:
       - GTFS_STATIC_URL

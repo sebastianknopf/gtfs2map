@@ -3,7 +3,7 @@ requires = ["setuptools", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gtfsrtmapfx"
+name = "gtfs2map"
 description = "Renderer for interactive HTML map apps for visualizing GTFS-RT data."
 authors = [{ name = "Sebastian Knopf", email = "mail@sebastian-knopf.de" }]
 readme = "README.md"
@@ -18,4 +18,4 @@ requires-python = ">=3.10"
 dynamic = ["version"]
 
 [tool.setuptools_scm]
-write_to = "src/gtfsrtmapfx/version.py"
+write_to = "src/gtfs2map/version.py"

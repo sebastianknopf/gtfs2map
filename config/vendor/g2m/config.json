@@ -1,7 +1,7 @@
 {
   "agencies": [
     {
-      "agencyKey": "gtfsrtmapfx",
+      "agencyKey": "gtfs2map",
       "path": "/data/gtfs.zip"
     }
   ],

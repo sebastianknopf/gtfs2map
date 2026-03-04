@@ -4,19 +4,19 @@
         {
             "label": "start-local-server",
             "type": "shell",
-            "command": "docker run --rm -d -p 80:80 -v ${workspaceFolder}/output/${input:layoutId}:/usr/share/nginx/html --name gtfsrtmapfx-webserver nginx:alpine",
+            "command": "docker run --rm -d -p 80:80 -v ${workspaceFolder}/output/${input:layoutId}:/usr/share/nginx/html --name gtfs2map-webserver nginx:alpine",
             "problemMatcher": []
         },
         {
             "label": "stop-local-server",
             "type": "shell",
-            "command": "docker stop gtfsrtmapfx-webserver",
+            "command": "docker stop gtfs2map-webserver",
             "problemMatcher": []
         },
         {
             "label": "render",
             "type": "shell",
-            "command": "docker compose run --rm --build gtfsrtmapfx render",
+            "command": "docker compose run --rm --build gtfs2map render",
             "problemMatcher": []
         }
     ],
