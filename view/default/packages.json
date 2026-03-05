@@ -1,0 +1,8 @@
+{
+    "maplibre-gl@latest/dist/maplibre-gl.js": "static/js/maplibre.js",
+    "maplibre-gl@latest/dist/maplibre-gl.css": "static/css/maplibre.css",
+    "moment@2.30.1/moment.js": "static/js/moment.js",
+    "mqtt/dist/mqtt.min.js": "static/js/mqtt.js",
+    "pbf@4.0.1/dist/pbf.js": "static/js/pbf.js",
+    "gtfs-realtime-pbf-js-module@1.0.0/gtfs-realtime.browser.proto.js": "static/js/gtfsrt.js"
+}
