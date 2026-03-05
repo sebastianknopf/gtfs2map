@@ -177,6 +177,90 @@ function getTranslation(translations, language) {
     }
 }
 
+function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBrokerUsername, mqttBrokerPassword, tripUpdatesTopic, tripUpdatesCallback, vehiclePositionsTopic, vehiclePositionsCallback, serviceAlertsTopic, serviceAlertsCallback, routeIds) {
+    window.tripUpdates = [];
+    window.vehiclePositions = [];
+    window.serviceAlerts = [];
+    
+    client = mqtt.connect(`wss://${mqttBrokerHost}:${mqttBrokerPort}/mqtt`, {
+            username: mqttBrokerUsername,
+            password: mqttBrokerPassword
+    });
+
+    client.on('connect', () => {
+        if (tripUpdatesTopic != null) {
+            client.subscribe(tripUpdatesTopic);
+        }
+
+        if (vehiclePositionsTopic != null) {
+            client.subscribe(vehiclePositionsTopic);
+        }
+
+        if (serviceAlertsTopic != null) {
+            client.subscribe(serviceAlertsTopic);
+        }
+    });
+
+    client.on('message', (topic, message) => {
+        const protocolBuffer = new Pbf(new Uint8Array(message));
+        const obj = FeedMessage.read(protocolBuffer);
+
+        for (let entity of obj.entity) {
+            if (entity.vehicle != undefined) {
+                window.vehiclePositions = window.vehiclePositions.filter(
+                    e => e.id != entity.id
+                );
+
+                if (!entity.is_deleted) {
+                    window.vehiclePositions.push(entity);
+                }
+
+                window.vehiclePositions = filterVehiclePositions(window.vehiclePositions, routeIds);
+
+                if (vehiclePositionsCallback) {
+                    vehiclePositionsCallback(window.vehiclePositions);
+                }
+            } else if (entity.trip_update != undefined) {
+                window.tripUpdates = window.tripUpdates.filter(
+                    e => e.id != entity.id
+                );
+
+                if (!entity.is_deleted) {
+                    window.tripUpdates.push(entity);                
+                }
+
+                window.tripUpdates = filterTripUpdates(window.tripUpdates, routeIds);
+
+                if (tripUpdatesCallback) {
+                    tripUpdatesCallback(window.tripUpdates);
+                }
+            } else if (entity.alert != undefined) {
+                window.serviceAlerts = window.serviceAlerts.filter(
+                    e => e.id != entity.id
+                );
+
+                if (!entity.is_deleted) {
+                    window.serviceAlerts.push(entity);                
+                }
+                
+                let routeServiceAlertsMap = new Map();
+                routeIds.forEach(r => {
+                    let serviceAlertsForRoute = filterServiceAlerts(window.serviceAlerts, r);
+                    routeServiceAlertsMap.set(r, serviceAlertsForRoute);
+
+                    window.serviceAlerts += serviceAlertsForRoute;
+                });
+
+                window.serviceAlerts = filterServiceAlerts(window.serviceAlerts, routeIds);
+
+                if (serviceAlertsCallback) {
+                    serviceAlertsCallback(routeServiceAlertsMap);
+                }
+            }
+        }
+    });
+}
+
 async function fetchGtfsRealtimeData(url, headers) {
     if (!url) {
         return null;
@@ -247,7 +331,7 @@ function findVehiclePosition(vehicleId) {
     return window.vehiclePositions.find(p => p.vehicle.vehicle.id == vehicleId);
 }
 
-async function initializeRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
+async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
     if (!realtimeUpdateInterval) {
         const updateInterval = 10 * 1000;
 
@@ -398,7 +482,7 @@ async function updateServiceAlerts(url, routeIds, serviceAlertsCallback) {
     }
 }
 
-function initializeServiceAlerts(url, routeIds, serviceAlertsCallback) {
+function initializeHttpServiceAlerts(url, routeIds, serviceAlertsCallback) {
     if (!serviceAlertsUpdateInterval) {
         const updateInterval = 60 * 1000;
 
