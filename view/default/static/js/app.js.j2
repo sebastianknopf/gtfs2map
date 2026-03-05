@@ -44,10 +44,36 @@ function hideMenu() {
 	document.getElementById('app-action-close-menu').classList.add('w3-hide');
 }
 
-function showVehicleInfoDialog(route, nextStop, vehicleLabel, lastUpdateTimestamp) {    
-    
+function showVehicleInfoDialog(vehicleId) {    
+
+    let tripUpdate = findTripUpdate(vehicleId);
+    let vehiclePosition = findVehiclePosition(vehicleId);
+    if (vehiclePosition == null) {
+        return;
+    }
+
     let currentTimestamp = Math.floor(Date.now() / 1000);
-    let lastUpdateSeconds = currentTimestamp - lastUpdateTimestamp;
+    let lastUpdateSeconds = currentTimestamp - vehiclePosition.vehicle.timestamp;
+
+    let route = null;
+    let nextStop = null;
+    if (tripUpdate != null) {
+        let routeProperties = getRouteProperties(tripUpdate.trip_update.trip.route_id);
+        let nextStopProperties = getStopProperties(tripUpdate.trip_update.stop_time_update[0].stop_id);
+        let lastStopProperties = getStopProperties(tripUpdate.trip_update.stop_time_update[tripUpdate.trip_update.stop_time_update.length - 1].stop_id);
+
+        route = {
+            shortName: routeProperties.route_short_name != null ? routeProperties.route_short_name : routeProperties.route_long_name,
+            color: routeProperties.route_color,
+            textColor: routeProperties.route_text_color,
+            directionText: lastStopProperties.stop_name
+        };
+
+        nextStop = {
+            stopName: nextStopProperties.stop_name,
+            arrivalTimestamp: tripUpdate.trip_update.stop_time_update[0].arrival != null ? tripUpdate.trip_update.stop_time_update[0].arrival.time : tripUpdate.trip_update.stop_time_update[0].departure.time
+        };
+    }
     
     if (route != null && nextStop != null) {
         let durationToArrival = Math.max(Math.round(((nextStop.arrivalTimestamp - currentTimestamp) / 60.0) / 0.5) * 0.5, 0);
@@ -67,7 +93,7 @@ function showVehicleInfoDialog(route, nextStop, vehicleLabel, lastUpdateTimestam
         document.getElementById('app-vehicle-info-matched').classList.remove('w3-hide');
         document.getElementById('app-vehicle-info-unmatched').classList.add('w3-hide');
     } else {
-        document.getElementById('app-vehicle-info-vehicle-label').textContent = vehicleLabel;
+        document.getElementById('app-vehicle-info-vehicle-label').textContent = vehiclePosition.vehicle.vehicle.label != null ? vehiclePosition.vehicle.vehicle.label : vehiclePosition.vehicle.vehicle.id;
 
         document.getElementById('app-vehicle-info-next-stop').classList.add('w3-hide');
         document.getElementById('app-vehicle-info-matched').classList.add('w3-hide');
@@ -215,8 +241,6 @@ function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBroke
                     window.vehiclePositions.push(entity);
                 }
 
-                window.vehiclePositions = filterVehiclePositions(window.vehiclePositions, routeIds);
-
                 if (vehiclePositionsCallback) {
                     vehiclePositionsCallback(window.vehiclePositions);
                 }
@@ -228,8 +252,6 @@ function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBroke
                 if (!entity.is_deleted) {
                     window.tripUpdates.push(entity);                
                 }
-
-                window.tripUpdates = filterTripUpdates(window.tripUpdates, routeIds);
 
                 if (tripUpdatesCallback) {
                     tripUpdatesCallback(window.tripUpdates);
@@ -247,11 +269,7 @@ function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBroke
                 routeIds.forEach(r => {
                     let serviceAlertsForRoute = filterServiceAlerts(window.serviceAlerts, r);
                     routeServiceAlertsMap.set(r, serviceAlertsForRoute);
-
-                    window.serviceAlerts += serviceAlertsForRoute;
                 });
-
-                window.serviceAlerts = filterServiceAlerts(window.serviceAlerts, routeIds);
 
                 if (serviceAlertsCallback) {
                     serviceAlertsCallback(routeServiceAlertsMap);
@@ -259,6 +277,17 @@ function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBroke
             }
         }
     });
+
+    // run initial callback for service alerts in order to show empty message
+    let routeServiceAlertsMap = new Map();
+    routeIds.forEach(r => {
+        let serviceAlertsForRoute = filterServiceAlerts(window.serviceAlerts, r);
+        routeServiceAlertsMap.set(r, serviceAlertsForRoute);
+    });
+
+    if (serviceAlertsCallback) {
+        serviceAlertsCallback(routeServiceAlertsMap);
+    }
 }
 
 async function fetchGtfsRealtimeData(url, headers) {
@@ -408,8 +437,11 @@ function updateVehicleMarkerTripData(container, tripUpdate, vehiclePosition) {
                     routeNameSpan.innerHTML = `<b>${routeProperties.route_long_name}</b>`;
                 }
 
-                routeNameSpan.style.background = routeProperties.route_color || '{{ APP_TEMPLATE_COLOR }}';
-                routeNameSpan.style.color = routeProperties.route_text_color || '{{ APP_TEMPLATE_COLOR|text(0) }}';
+                if (routeProperties) 
+                {
+                    routeNameSpan.style.background = routeProperties.route_color || '{{ APP_TEMPLATE_COLOR }}';
+                    routeNameSpan.style.color = routeProperties.route_text_color || '{{ APP_TEMPLATE_COLOR|text(0) }}';
+                }
             }
 
             let delayInfoSpan = tripInfoDiv.querySelector('.app-trip-info-delay');
