@@ -17,5 +17,3 @@ services:
     volumes:
       - ./view/${APP_TEMPLATE_ID}:/data/j2/input:ro
       - ./output/${APP_TEMPLATE_ID}:/data/html/output:rw
-    ports:
-      - "8080:8080"
