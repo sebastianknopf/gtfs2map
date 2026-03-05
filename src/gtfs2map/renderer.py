@@ -65,9 +65,6 @@ class JinjaRenderer:
                 {**context, 'route': route}, 
                 'route.html.j2'
             )
-            
-            route_output_dir: str = os.path.join(self._output_dir, 'routes')
-            os.makedirs(route_output_dir, exist_ok=True)
 
             route_output_file: str = f"{self._safe_filter(route.properties['route_id'])}.html"
             with open(os.path.join(self._output_dir, route_output_file), 'w', encoding='utf-8') as f:
