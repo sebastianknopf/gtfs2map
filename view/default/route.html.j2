@@ -58,7 +58,7 @@
 <script>
 var routeIds = ['{{ route|properties('route_id') }}'];
 
-{% if GTFS_REALTIME_SERVICE_ALERTS_URL %}
+{% if GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL %}
 function routeServiceAlertsCallback(routeServiceAlertsMap) {
     let alerts = routeServiceAlertsMap.get('{{ route|properties('route_id') }}');
 

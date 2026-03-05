@@ -40,7 +40,7 @@
 <script>
 var routeIds = routesGeojson.features.map(f => f.properties.route_id);
 
-{% if GTFS_REALTIME_SERVICE_ALERTS_URL %}
+{% if GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL %}
 function routeServiceAlertsCallback(routeServiceAlertsMap) {
     routeServiceAlertsMap.forEach((alerts, routeId) => {
         let routeAlertIcon = document.querySelector(`[data-route-id="${escapeId(routeId)}"] .app-route-alert-icon`);
