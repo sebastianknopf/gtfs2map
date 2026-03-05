@@ -61,9 +61,17 @@ class GeoJsonContext:
         context['stops'] = FeatureCollection(features=stops)
 
         # add environment variables
-        context['GTFS_REALTIME_TRIP_UPDATES_URL'] = os.getenv('GTFS_REALTIME_TRIP_UPDATES_URL', None)
-        context['GTFS_REALTIME_VEHICLE_POSITIONS_URL'] = os.getenv('GTFS_REALTIME_VEHICLE_POSITIONS_URL', None)
-        context['GTFS_REALTIME_SERVICE_ALERTS_URL'] = os.getenv('GTFS_REALTIME_SERVICE_ALERTS_URL', None)
+        context['GTFS_REALTIME_METHOD'] = os.getenv('GTFS_REALTIME_METHOD', 'http')
+        context['GTFS_REALTIME_HTTP_TRIP_UPDATES_URL'] = os.getenv('GTFS_REALTIME_HTTP_TRIP_UPDATES_URL', None)
+        context['GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL'] = os.getenv('GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL', None)
+        context['GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL'] = os.getenv('GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL', None)
+        context['GTFS_REALTIME_MQTT_BROKER_HOST'] = os.getenv('GTFS_REALTIME_MQTT_BROKER_HOST', None)
+        context['GTFS_REALTIME_MQTT_BROKER_PORT'] = os.getenv('GTFS_REALTIME_MQTT_BROKER_PORT', None)
+        context['GTFS_REALTIME_MQTT_BROKER_USERNAME'] = os.getenv('GTFS_REALTIME_MQTT_BROKER_USERNAME', None)
+        context['GTFS_REALTIME_MQTT_BROKER_PASSWORD'] = os.getenv('GTFS_REALTIME_MQTT_BROKER_PASSWORD', None)
+        context['GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC'] = os.getenv('GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC', None)
+        context['GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC'] = os.getenv('GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC', None)
+        context['GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC'] = os.getenv('GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC', None)
 
         context['APP_TEMPLATE_ID'] = os.getenv('APP_TEMPLATE_ID', 'default')
         context['APP_TEMPLATE_TITLE'] = os.getenv('APP_TEMPLATE_TITLE', 'Map')
