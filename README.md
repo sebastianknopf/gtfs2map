@@ -14,9 +14,17 @@ There're some basic configurations affecting the behaviour of `gtfs2map`:
 | Variable | Description |
 | -- | -- |
 | GTFS_STATIC_URL | URL to the static GTFS feed which should be used for rendering the static data. |
-| GTFS_REALTIME_TRIP_UPDATES_URL | URL for the GTFS-RT trip updates consumed in the frontend. |
-| GTFS_REALTIME_VEHICLE_POSITIONS_URL | URL to the GTFS-RT vehicle positions consumed in the frontend. |
-| GTFS_REALTIME_SERVICE_ALERTS_URL | URL to the GTFS-RT service alerts consumed in the frontend. |
+| GTFS_REALTIME_METHOD | |
+| GTFS_REALTIME_HTTP_TRIP_UPDATES_URL | URL for the GTFS-RT trip updates consumed in the frontend. |
+| GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL | URL to the GTFS-RT vehicle positions consumed in the frontend. |
+| GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL | URL to the GTFS-RT service alerts consumed in the frontend. |
+| GTFS_REALTIME_MQTT_BROKER_HOST | |
+| GTFS_REALTIME_MQTT_BROKER_PORT | |
+| GTFS_REALTIME_MQTT_BROKER_USERNAME | |
+| GTFS_REALTIME_MQTT_BROKER_PASSWORD | |
+| GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC | |
+| GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC | |
+| GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC | |
 
 The variables starting with `APP_TEMPLATE_` are also available in the Jinja2 templates for rendering:
 | Variable | Description |
