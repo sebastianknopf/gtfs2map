@@ -1,7 +1,9 @@
 import colorsys
 import geojson
+import json
 import logging
 import os
+import requests
 import shutil
 
 from geojson import Feature
@@ -34,7 +36,7 @@ class JinjaRenderer:
             os.makedirs(self._output_dir, exist_ok=True)
 
         self._auto_render_extensions = ['.html.j2', '.css.j2', '.js.j2', '.geojson.j2']
-        self._mandatory_render_filenames = ['index.html.j2', 'routes/route.html.j2']
+        self._mandatory_render_filenames = ['index.html.j2', 'route.html.j2']
 
     def render_file(self, context: dict, filename: str) -> str:
         template: Template = self._env.get_template(filename)
@@ -57,17 +59,17 @@ class JinjaRenderer:
 
         logging.info(f"Rendered index.html [Mandatory]")
 
-        # routes/[route].html for each route
+        # [route].html for each route
         for route in context.get('routes').features:
             rendered = self.render_file(
                 {**context, 'route': route}, 
-                'routes/route.html.j2'
+                'route.html.j2'
             )
             
             route_output_dir: str = os.path.join(self._output_dir, 'routes')
             os.makedirs(route_output_dir, exist_ok=True)
 
-            route_output_file: str = f"routes/{self._safe_filter(route.properties['route_id'])}.html"
+            route_output_file: str = f"{self._safe_filter(route.properties['route_id'])}.html"
             with open(os.path.join(self._output_dir, route_output_file), 'w', encoding='utf-8') as f:
                 f.write(rendered)
 
@@ -108,10 +110,39 @@ class JinjaRenderer:
                     logging.info(f"Rendered {relative_filename}")
 
                 elif not filename.endswith('.j2'):
+                    if filename == 'packages.json':
+                        continue
+
                     dest_file: str = os.path.join(relative_path, filename)
                     shutil.copy2(src_file, os.path.join(self._output_dir, dest_file))
 
                     logging.info(f"Copied {dest_file}")
+
+        ###
+        # download packages
+        ###
+
+        if os.path.exists(os.path.join(self._template_directory, 'packages.json')):
+            with open(os.path.join(self._template_directory, 'packages.json'), 'r', encoding='utf-8') as f:
+                packages = json.load(f)
+
+            for package, destination in packages.items():
+                destination = os.path.join(self._output_dir, destination)
+
+                unpgk_url: str = f"https://unpkg.com/{package}"
+                try:
+                    response = requests.get(unpgk_url)
+                    response.raise_for_status()
+
+                    destination_directory: str = os.path.dirname(destination)
+                    os.makedirs(destination_directory, exist_ok=True)
+
+                    with open(destination, 'wb') as f:
+                        f.write(response.content)
+
+                    logging.info(f"Downloaded {unpgk_url} to {destination}")
+                except requests.RequestException as e:
+                    logging.error(f"Failed to download {unpgk_url}: {e}")
 
     def _shade_filter(self, hex_color: str, level: int = 0) -> str:
         hex_color = hex_color.lstrip('#')

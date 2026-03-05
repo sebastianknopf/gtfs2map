@@ -4,16 +4,16 @@
 
 {%block header %}
 <div class="w3-bar-item w3-hide-small">	
-    <img class="w3-image" src="../static/img/logo.svg" width="40" height="40" />
+    <img class="w3-image" src="static/img/logo.svg" width="40" height="40" />
 </div>
 <span class="w3-bar-item">{{ APP_TEMPLATE_TITLE }}</span>
 {% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="../static/css/w3.css" />
-<link rel="stylesheet" href="../static/css/w3-theme.css" />
-<link rel="stylesheet" href="../static/css/maplibre.css" />
-<link rel="stylesheet" href="../static/css/app.css" />
+<link rel="stylesheet" href="static/css/w3.css" />
+<link rel="stylesheet" href="static/css/w3-theme.css" />
+<link rel="stylesheet" href="static/css/maplibre.css" />
+<link rel="stylesheet" href="static/css/app.css" />
 {% endblock %}
 
 {% block main %}
@@ -36,7 +36,7 @@
     </section>
     <section>
         <div class="w3-container w3-padding-16">
-            <a class="w3-button w3-block w3-theme" href="../index.html">Zurück</a>
+            <a class="w3-button w3-block w3-theme" href="index.html">Zurück</a>
         </div>
     </section>
 </aside>
@@ -44,16 +44,17 @@
     <div id="app-map">
     </div>
     {% import "components/vehicle_info_dialog.j2" as vehicle_info_dialog %}
-    {{ vehicle_info_dialog.create('../static') }}
+    {{ vehicle_info_dialog.create('static') }}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="../static/js/maplibre.js"></script>
-<script src="../static/js/moment.js"></script>
-<script src="../static/js/pbf.js"></script>
-<script src="../static/js/gtfsrt.js"></script>
-<script src="../static/js/app.js"></script>
+<script src="static/js/maplibre.js"></script>
+<script src="static/js/moment.js"></script>
+<script src="static/js/mqtt.js"></script>
+<script src="static/js/pbf.js"></script>
+<script src="static/js/gtfsrt.js"></script>
+<script src="static/js/app.js"></script>
 <script>
 var routeIds = ['{{ route|properties('route_id') }}'];
 
@@ -88,6 +89,6 @@ function routeServiceAlertsCallback(routeServiceAlertsMap) {
 {% endif %}
 </script>
 {% import "components/map.j2" as map %}
-{{ map.create('../static', APP_TEMPLATE_COLOR, [route|properties('route_id')]) }}
+{{ map.create('static', APP_TEMPLATE_COLOR, [route|properties('route_id')]) }}
 {% include "components/realtime_init_script.j2" %}
 {% endblock %}
