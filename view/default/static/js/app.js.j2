@@ -9,6 +9,10 @@ let vehicleInfoLastUpdateTimeout;
 var serviceAlerts = [];
 let serviceAlertsUpdateInterval;
 
+var vehicleMarkersMap = new Map();
+
+let appZoomLevel = 0;
+
 function escapeId(id) {
   return id
     .replace(/\\/g, '_')
@@ -201,6 +205,37 @@ function getTranslation(translations, language) {
     } else {
         return null;
     }
+}
+
+function setAppZoomLevel(zoom) {
+    appZoomLevel = zoom;
+    applyVisualAppStyles();
+}
+
+function applyVisualAppStyles() {
+    vehicleMarkersMap.forEach((marker, vehicleId) => {
+        let markerElement = marker.getElement();
+
+        let iconWrapper = markerElement.querySelector('.app-vehicle-img-wrapper');
+        if (iconWrapper) {
+            if (appZoomLevel < 14) {
+                iconWrapper.style.transform = 'translateX(-50%) scale(0.6)';
+                iconWrapper.style.transformOrigin = 'center center';
+            } else {
+                iconWrapper.style.transform = '';
+                iconWrapper.style.transformOrigin = '';
+            }
+        }
+
+        let tripInfo = markerElement.querySelector('.app-vehicle-trip-info');
+        if (tripInfo) {
+            if (appZoomLevel < 14) {
+                tripInfo.classList.add('hide-by-zoom');
+            } else {
+                tripInfo.classList.remove('hide-by-zoom');
+            }
+        }
+    });
 }
 
 function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBrokerUsername, mqttBrokerPassword, tripUpdatesTopic, tripUpdatesCallback, vehiclePositionsTopic, vehiclePositionsCallback, serviceAlertsTopic, serviceAlertsCallback, routeIds) {

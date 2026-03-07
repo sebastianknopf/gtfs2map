@@ -1,8 +1,5 @@
 {% macro create(static_assets_dir, template_color, route_ids = none) %}
 <script>
-// create container for visual objects in the map
-const vehicleMarkersMap = new Map();
-
 // create initial map object and additional controls
 const map = new maplibregl.Map({
     container: 'app-map',
@@ -120,28 +117,7 @@ map.on('dragstart', function () {
 
 map.on('zoom', function () {
     let zoom = map.getZoom();
-
-    vehicleMarkersMap.forEach((marker, vehicleId) => {
-        let markerElement = marker.getElement();
-
-        let iconWrapper = markerElement.querySelector('.app-vehicle-img-wrapper');
-        if (iconWrapper) {
-            if (zoom < 14) {
-                iconWrapper.style.transform = 'scale(0.6)';
-            } else {
-                iconWrapper.style.transform = '';
-            }
-        }
-
-        let tripInfo = markerElement.querySelector('.app-vehicle-trip-info');
-        if (tripInfo) {
-            if (zoom < 14) {
-                tripInfo.classList.add('hide-by-zoom');
-            } else {
-                tripInfo.classList.remove('hide-by-zoom');
-            }
-        }
-    });
+    setAppZoomLevel(zoom);
 });
 
 function routeVehiclePositionsCallback(positions) {
@@ -158,7 +134,7 @@ function routeVehiclePositionsCallback(positions) {
     }
 
     // update all vehicle positions with their latest incoming data    
-    {% if APP_UNMATCHED_VEHICLES_ENABLED == false %}
+    {% if APP_UNMATCHED_VEHICLES_ENABLED == false or route_ids is not none %}
     positions = filterVehiclePositions(positions, routeIds);
     {% endif %}
 
@@ -213,6 +189,9 @@ function routeVehiclePositionsCallback(positions) {
             vehicleMarkersMap.set(p.vehicle.vehicle.id, marker);
         }
     });
+
+    // apply visual styles
+    applyVisualAppStyles();
 
     // if we have set a certain vehicleId in URL params
     // try to select the corresponding marker and fly map to this vehicle
