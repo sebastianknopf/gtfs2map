@@ -3,15 +3,45 @@ var stopsGeojson = {{ stops|geojson }};
 
 var tripUpdates = [];
 var vehiclePositions = [];
-let realtimeUpdateInterval;
-let vehicleInfoLastUpdateTimeout;
-
 var serviceAlerts = [];
-let serviceAlertsUpdateInterval;
 
 var vehicleMarkersMap = new Map();
 
+let appRealtimeUpdateIntervalObject;
+let appServiceAlertsUpdateIntervalObject;
+let appVehicleInfoLastUpdateTimeoutObject;
 let appZoomLevel = 0;
+
+function setAppZoomLevel(zoom) {
+    appZoomLevel = zoom;
+    applyVisualAppStyles();
+}
+
+function applyVisualAppStyles() {
+    vehicleMarkersMap.forEach((marker, vehicleId) => {
+        let markerElement = marker.getElement();
+
+        let iconWrapper = markerElement.querySelector('.app-vehicle-img-wrapper');
+        if (iconWrapper) {
+            if (appZoomLevel < 14) {
+                iconWrapper.style.transform = 'translateX(-50%) scale(0.6)';
+                iconWrapper.style.transformOrigin = 'center center';
+            } else {
+                iconWrapper.style.transform = '';
+                iconWrapper.style.transformOrigin = '';
+            }
+        }
+
+        let tripInfo = markerElement.querySelector('.app-vehicle-trip-info');
+        if (tripInfo) {
+            if (appZoomLevel < 14) {
+                tripInfo.classList.add('hide-by-zoom');
+            } else {
+                tripInfo.classList.remove('hide-by-zoom');
+            }
+        }
+    });
+}
 
 function escapeId(id) {
   return id
@@ -104,8 +134,8 @@ function showVehicleInfoDialog(vehicleId) {
         document.getElementById('app-vehicle-info-unmatched').classList.remove('w3-hide');
     }
 
-    if (vehicleInfoLastUpdateTimeout) {
-        clearTimeout(vehicleInfoLastUpdateTimeout);
+    if (appVehicleInfoLastUpdateTimeoutObject) {
+        clearTimeout(appVehicleInfoLastUpdateTimeoutObject);
     }
 
     function updateLastUpdateSeconds() {
@@ -121,7 +151,7 @@ function showVehicleInfoDialog(vehicleId) {
         document.getElementById('app-vehicle-info-last-update-seconds').textContent = displayValue;
 
         lastUpdateSeconds += 1;
-        vehicleInfoLastUpdateTimeout = setTimeout(updateLastUpdateSeconds, 1000);
+        appVehicleInfoLastUpdateTimeoutObject = setTimeout(updateLastUpdateSeconds, 1000);
     }
     updateLastUpdateSeconds();
     
@@ -130,9 +160,9 @@ function showVehicleInfoDialog(vehicleId) {
 
 function hideVehicleInfoDialog() {
     clearUrlParameters();
-    if (vehicleInfoLastUpdateTimeout) {
-        clearTimeout(vehicleInfoLastUpdateTimeout);
-        vehicleInfoLastUpdateTimeout = null;
+    if (appVehicleInfoLastUpdateTimeoutObject) {
+        clearTimeout(appVehicleInfoLastUpdateTimeoutObject);
+        appVehicleInfoLastUpdateTimeoutObject = null;
     }
     document.getElementById('app-vehicle-info-dialog').classList.add('w3-hide');
 }
@@ -154,6 +184,11 @@ function getGeoJsonBounds(geojson) {
     });
 
     return bounds;
+}
+
+function getGeoJsonCenter(geojson) {
+    const bounds = getGeoJsonBounds(geojson);
+    return bounds.getCenter();
 }
 
 function getRouteProperties(routeId) {
@@ -207,35 +242,152 @@ function getTranslation(translations, language) {
     }
 }
 
-function setAppZoomLevel(zoom) {
-    appZoomLevel = zoom;
-    applyVisualAppStyles();
+function createAlertContainer(alertObject) {
+    const alertContainer = document.createElement('div');
+    
+    const alertTitle = document.createElement('h6');
+    alertTitle.innerHTML = getTranslation(alertObject.alert.header_text.translation, 'de');
+    alertContainer.appendChild(alertTitle);
+
+    alertObject.alert.active_period.forEach(p => {
+        const activePeriodParagraph = document.createElement('p');
+        activePeriodParagraph.classList.add('w3-small');
+        activePeriodParagraph.classList.add('w3-bold');
+        
+        if (p.start != 0 && p.end != 0) {
+            activePeriodParagraph.innerHTML = `Von ${moment.unix(p.start).format('{{ APP_DATETIME_FORMAT }}')} bis ${moment.unix(p.end).format('{{ APP_DATETIME_FORMAT }}')}`;
+            alertContainer.appendChild(activePeriodParagraph);
+        } else if (p.start != 0 && p.end == 0) {
+            activePeriodParagraph.innerHTML = `Ab ${moment.unix(p.start).format('{{ APP_DATETIME_FORMAT }}')}`;
+            alertContainer.appendChild(activePeriodParagraph);
+        } else if (p.start == 0 && p.end != 0) {
+            activePeriodParagraph.innerHTML = `Bis ${moment.unix(p.end).format('{{ APP_DATETIME_FORMAT }}')}`;
+            alertContainer.appendChild(activePeriodParagraph);
+        } 
+    });
+
+    const alertMessage = document.createElement('p');
+    alertMessage.classList.add('w3-text-gray');
+    alertMessage.classList.add('w3-small');
+    alertMessage.innerHTML = getTranslation(alertObject.alert.description_text.translation, 'de');
+    alertContainer.appendChild(alertMessage);
+
+    const alertLink = document.createElement('a');
+    alertLink.setAttribute('href', getTranslation(alertObject.alert.url.translation, 'de'));
+    alertLink.setAttribute('target', '_blank');
+    alertLink.classList.add('w3-text-theme');
+    alertLink.classList.add('w3-small');
+    alertLink.innerHTML = 'Mehr Infos';
+    alertContainer.appendChild(alertLink);
+
+    return alertContainer;
 }
 
-function applyVisualAppStyles() {
-    vehicleMarkersMap.forEach((marker, vehicleId) => {
-        let markerElement = marker.getElement();
+function createVehicleMarkerContainer(vehiclePosition, staticAssetsDir) {
+    let markerContainer = document.createElement('div');
+    markerContainer.classList.add('w3-center');
+    
+    let markerIconDiv = document.createElement('div');
+    markerIconDiv.classList.add('w3-white');
+    markerIconDiv.classList.add('w3-round-xxlarge');
+    markerIconDiv.classList.add('w3-border');
+    markerIconDiv.classList.add('app-vehicle-img-wrapper');
+    markerContainer.appendChild(markerIconDiv);
 
-        let iconWrapper = markerElement.querySelector('.app-vehicle-img-wrapper');
-        if (iconWrapper) {
-            if (appZoomLevel < 14) {
-                iconWrapper.style.transform = 'translateX(-50%) scale(0.6)';
-                iconWrapper.style.transformOrigin = 'center center';
-            } else {
-                iconWrapper.style.transform = '';
-                iconWrapper.style.transformOrigin = '';
-            }
-        }
+    let markerIconImg = document.createElement('img');
+    markerIconImg.setAttribute('src', `${staticAssetsDir}/img/realtime.svg`);
+    markerIconImg.setAttribute('width', '32');
+    markerIconImg.setAttribute('height', '32');
+    markerIconDiv.appendChild(markerIconImg);
 
-        let tripInfo = markerElement.querySelector('.app-vehicle-trip-info');
-        if (tripInfo) {
-            if (appZoomLevel < 14) {
-                tripInfo.classList.add('hide-by-zoom');
-            } else {
-                tripInfo.classList.remove('hide-by-zoom');
+    let markerVehicleDirectionArrowWrapperDiv = document.createElement('div');
+    markerVehicleDirectionArrowWrapperDiv.classList.add('app-vehicle-direction-arrow-wrapper');
+    markerIconDiv.appendChild(markerVehicleDirectionArrowWrapperDiv);
+
+    let markerVehicleDirectionArrowDiv = document.createElement('div');
+    markerVehicleDirectionArrowDiv.innerHTML = `<svg width="24" height="10" viewBox="0 0 24 10" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0 L22 10 Q12 6, 2 10 Z" fill="#444" />
+    </svg>`;
+    markerVehicleDirectionArrowWrapperDiv.appendChild(markerVehicleDirectionArrowDiv);
+
+    let tripInfoDiv = document.createElement('div');
+    tripInfoDiv.classList.add('w3-round');
+    tripInfoDiv.classList.add('w3-small');
+    tripInfoDiv.classList.add('w3-hide');
+    tripInfoDiv.classList.add('app-vehicle-trip-info');
+    markerContainer.appendChild(tripInfoDiv);
+
+    let tripInfoBackgroundSpan = document.createElement('span');
+    tripInfoDiv.appendChild(tripInfoBackgroundSpan);
+
+    let routeNameSpan = document.createElement('span');
+    routeNameSpan.classList.add('w3-round');
+    routeNameSpan.classList.add('app-trip-info-route-name');
+    tripInfoBackgroundSpan.appendChild(routeNameSpan);
+
+    let delayInfoSpan = document.createElement('span');
+    delayInfoSpan.classList.add('w3-round');
+    delayInfoSpan.classList.add('app-trip-info-delay');
+    tripInfoBackgroundSpan.appendChild(delayInfoSpan);
+
+    return markerContainer;
+}
+
+function updateVehicleMarkerTripData(container, tripUpdate, vehiclePosition) {
+    let tripInfoDiv = container.querySelector('.app-vehicle-trip-info');
+    if (tripInfoDiv) {
+        if (tripUpdate) {
+            let routeNameSpan = tripInfoDiv.querySelector('.app-trip-info-route-name');
+            if (routeNameSpan) {
+                let routeProperties = getRouteProperties(tripUpdate.trip_update.trip.route_id);
+                if (routeProperties && routeProperties.route_short_name != null) {
+                    routeNameSpan.innerHTML = `<b>${routeProperties.route_short_name}</b>`;
+                } else if (routeProperties && routeProperties.route_long_name != null) {
+                    routeNameSpan.innerHTML = `<b>${routeProperties.route_long_name}</b>`;
+                }
+
+                if (routeProperties) 
+                {
+                    routeNameSpan.style.background = routeProperties.route_color || '{{ APP_TEMPLATE_COLOR }}';
+                    routeNameSpan.style.color = routeProperties.route_text_color || '{{ APP_TEMPLATE_COLOR|text(0) }}';
+                }
             }
+
+            let delayInfoSpan = tripInfoDiv.querySelector('.app-trip-info-delay');
+            if (delayInfoSpan) {
+                // assume that the first stopTimeUpdate in the tripUpdate is the next stop
+                // if our vehicle position has a stop_id and current_stop_sequence, use this to pick the correct stopTimeUpdate
+                let stopTimeUpdate = tripUpdate.trip_update.stop_time_update[0];
+                if (vehiclePosition.vehicle.stop_id != null && vehiclePosition.vehicle.current_stop_sequence != null) {
+                    let stopTimeUpdateOverride = tripUpdate.trip_update.stop_time_update.find(s => s.stop_id == vehiclePosition.vehicle.stop_id && (s.stop_sequence == 0 || s.stop_sequence == vehiclePosition.vehicle.stop_sequence));
+                    if (stopTimeUpdateOverride) {
+                        stopTimeUpdate = stopTimeUpdateOverride;
+                    }
+                }
+
+                if (stopTimeUpdate && (stopTimeUpdate.departure.delay != null || stopTimeUpdate.arrival.delay != null)) {
+                    let delayMinutes = getDelayMinutes(stopTimeUpdate.departure.delay || stopTimeUpdate.arrival.delay);
+
+                    if (delayMinutes >= 0) {
+                        delayInfoSpan.innerHTML = `<b>+${delayMinutes}</b>`;
+                    } else {
+                        delayInfoSpan.innerHTML = `<b>${delayMinutes}</b>`;
+                    }
+
+                    delayInfoSpan.style.background = '#ffffff';
+                    if (Math.abs(delayMinutes) < 3 && delayMinutes >= 0) {
+                        delayInfoSpan.style.color = '#00b700ff';
+                    } else {
+                        delayInfoSpan.style.color = '#ff0000ff';
+                    }
+                }
+            }
+
+            tripInfoDiv.classList.remove('w3-hide');
+        } else {
+            tripInfoDiv.classList.add('w3-hide');
         }
-    });
+    }
 }
 
 function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBrokerUsername, mqttBrokerPassword, tripUpdatesTopic, tripUpdatesCallback, vehiclePositionsTopic, vehiclePositionsCallback, serviceAlertsTopic, serviceAlertsCallback, routeIds) {
@@ -396,123 +548,16 @@ function findVehiclePosition(vehicleId) {
 }
 
 async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
-    if (!realtimeUpdateInterval) {
+    if (!appRealtimeUpdateIntervalObject) {
         const updateInterval = 10 * 1000;
 
         await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
         await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
 
-        realtimeUpdateInterval = setInterval(async () => {
+        appRealtimeUpdateIntervalObject = setInterval(async () => {
             await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
             await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
         }, updateInterval);
-    }
-}
-
-function createVehicleMarkerContainer(vehiclePosition, staticAssetsDir) {
-    let markerContainer = document.createElement('div');
-    markerContainer.classList.add('w3-center');
-    
-    let markerIconDiv = document.createElement('div');
-    markerIconDiv.classList.add('w3-white');
-    markerIconDiv.classList.add('w3-round-xxlarge');
-    markerIconDiv.classList.add('w3-border');
-    markerIconDiv.classList.add('app-vehicle-img-wrapper');
-    markerContainer.appendChild(markerIconDiv);
-
-    let markerIconImg = document.createElement('img');
-    markerIconImg.setAttribute('src', `${staticAssetsDir}/img/realtime.svg`);
-    markerIconImg.setAttribute('width', '32');
-    markerIconImg.setAttribute('height', '32');
-    markerIconDiv.appendChild(markerIconImg);
-
-    let markerVehicleDirectionArrowWrapperDiv = document.createElement('div');
-    markerVehicleDirectionArrowWrapperDiv.classList.add('app-vehicle-direction-arrow-wrapper');
-    markerIconDiv.appendChild(markerVehicleDirectionArrowWrapperDiv);
-
-    let markerVehicleDirectionArrowDiv = document.createElement('div');
-    markerVehicleDirectionArrowDiv.innerHTML = `<svg width="24" height="10" viewBox="0 0 24 10" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0 L22 10 Q12 6, 2 10 Z" fill="#444" />
-    </svg>`;
-    markerVehicleDirectionArrowWrapperDiv.appendChild(markerVehicleDirectionArrowDiv);
-
-    let tripInfoDiv = document.createElement('div');
-    tripInfoDiv.classList.add('w3-round');
-    tripInfoDiv.classList.add('w3-small');
-    tripInfoDiv.classList.add('w3-hide');
-    tripInfoDiv.classList.add('app-vehicle-trip-info');
-    markerContainer.appendChild(tripInfoDiv);
-
-    let tripInfoBackgroundSpan = document.createElement('span');
-    tripInfoDiv.appendChild(tripInfoBackgroundSpan);
-
-    let routeNameSpan = document.createElement('span');
-    routeNameSpan.classList.add('w3-round');
-    routeNameSpan.classList.add('app-trip-info-route-name');
-    tripInfoBackgroundSpan.appendChild(routeNameSpan);
-
-    let delayInfoSpan = document.createElement('span');
-    delayInfoSpan.classList.add('w3-round');
-    delayInfoSpan.classList.add('app-trip-info-delay');
-    tripInfoBackgroundSpan.appendChild(delayInfoSpan);
-
-    return markerContainer;
-}
-
-function updateVehicleMarkerTripData(container, tripUpdate, vehiclePosition) {
-    let tripInfoDiv = container.querySelector('.app-vehicle-trip-info');
-    if (tripInfoDiv) {
-        if (tripUpdate) {
-            let routeNameSpan = tripInfoDiv.querySelector('.app-trip-info-route-name');
-            if (routeNameSpan) {
-                let routeProperties = getRouteProperties(tripUpdate.trip_update.trip.route_id);
-                if (routeProperties && routeProperties.route_short_name != null) {
-                    routeNameSpan.innerHTML = `<b>${routeProperties.route_short_name}</b>`;
-                } else if (routeProperties && routeProperties.route_long_name != null) {
-                    routeNameSpan.innerHTML = `<b>${routeProperties.route_long_name}</b>`;
-                }
-
-                if (routeProperties) 
-                {
-                    routeNameSpan.style.background = routeProperties.route_color || '{{ APP_TEMPLATE_COLOR }}';
-                    routeNameSpan.style.color = routeProperties.route_text_color || '{{ APP_TEMPLATE_COLOR|text(0) }}';
-                }
-            }
-
-            let delayInfoSpan = tripInfoDiv.querySelector('.app-trip-info-delay');
-            if (delayInfoSpan) {
-                // assume that the first stopTimeUpdate in the tripUpdate is the next stop
-                // if our vehicle position has a stop_id and current_stop_sequence, use this to pick the correct stopTimeUpdate
-                let stopTimeUpdate = tripUpdate.trip_update.stop_time_update[0];
-                if (vehiclePosition.vehicle.stop_id != null && vehiclePosition.vehicle.current_stop_sequence != null) {
-                    let stopTimeUpdateOverride = tripUpdate.trip_update.stop_time_update.find(s => s.stop_id == vehiclePosition.vehicle.stop_id && (s.stop_sequence == 0 || s.stop_sequence == vehiclePosition.vehicle.stop_sequence));
-                    if (stopTimeUpdateOverride) {
-                        stopTimeUpdate = stopTimeUpdateOverride;
-                    }
-                }
-
-                if (stopTimeUpdate && (stopTimeUpdate.departure.delay != null || stopTimeUpdate.arrival.delay != null)) {
-                    let delayMinutes = getDelayMinutes(stopTimeUpdate.departure.delay || stopTimeUpdate.arrival.delay);
-
-                    if (delayMinutes >= 0) {
-                        delayInfoSpan.innerHTML = `<b>+${delayMinutes}</b>`;
-                    } else {
-                        delayInfoSpan.innerHTML = `<b>${delayMinutes}</b>`;
-                    }
-
-                    delayInfoSpan.style.background = '#ffffff';
-                    if (Math.abs(delayMinutes) < 3 && delayMinutes >= 0) {
-                        delayInfoSpan.style.color = '#00b700ff';
-                    } else {
-                        delayInfoSpan.style.color = '#ff0000ff';
-                    }
-                }
-            }
-
-            tripInfoDiv.classList.remove('w3-hide');
-        } else {
-            tripInfoDiv.classList.add('w3-hide');
-        }
     }
 }
 
@@ -550,54 +595,13 @@ async function updateServiceAlerts(url, routeIds, serviceAlertsCallback) {
 }
 
 function initializeHttpServiceAlerts(url, routeIds, serviceAlertsCallback) {
-    if (!serviceAlertsUpdateInterval) {
+    if (!appServiceAlertsUpdateIntervalObject) {
         const updateInterval = 60 * 1000;
 
         updateServiceAlerts(url, routeIds, serviceAlertsCallback);
 
-        serviceAlertsUpdateInterval = setInterval(() => {
+        appServiceAlertsUpdateIntervalObject = setInterval(() => {
             updateServiceAlerts(url, routeIds, serviceAlertsCallback);
         }, updateInterval);
     }
-}
-
-function createAlertContainer(alertObject) {
-    const alertContainer = document.createElement('div');
-    
-    const alertTitle = document.createElement('h6');
-    alertTitle.innerHTML = getTranslation(alertObject.alert.header_text.translation, 'de');
-    alertContainer.appendChild(alertTitle);
-
-    alertObject.alert.active_period.forEach(p => {
-        const activePeriodParagraph = document.createElement('p');
-        activePeriodParagraph.classList.add('w3-small');
-        activePeriodParagraph.classList.add('w3-bold');
-        
-        if (p.start != 0 && p.end != 0) {
-            activePeriodParagraph.innerHTML = `Von ${moment.unix(p.start).format('{{ APP_DATETIME_FORMAT }}')} bis ${moment.unix(p.end).format('{{ APP_DATETIME_FORMAT }}')}`;
-            alertContainer.appendChild(activePeriodParagraph);
-        } else if (p.start != 0 && p.end == 0) {
-            activePeriodParagraph.innerHTML = `Ab ${moment.unix(p.start).format('{{ APP_DATETIME_FORMAT }}')}`;
-            alertContainer.appendChild(activePeriodParagraph);
-        } else if (p.start == 0 && p.end != 0) {
-            activePeriodParagraph.innerHTML = `Bis ${moment.unix(p.end).format('{{ APP_DATETIME_FORMAT }}')}`;
-            alertContainer.appendChild(activePeriodParagraph);
-        } 
-    });
-
-    const alertMessage = document.createElement('p');
-    alertMessage.classList.add('w3-text-gray');
-    alertMessage.classList.add('w3-small');
-    alertMessage.innerHTML = getTranslation(alertObject.alert.description_text.translation, 'de');
-    alertContainer.appendChild(alertMessage);
-
-    const alertLink = document.createElement('a');
-    alertLink.setAttribute('href', getTranslation(alertObject.alert.url.translation, 'de'));
-    alertLink.setAttribute('target', '_blank');
-    alertLink.classList.add('w3-text-theme');
-    alertLink.classList.add('w3-small');
-    alertLink.innerHTML = 'Mehr Infos';
-    alertContainer.appendChild(alertLink);
-
-    return alertContainer;
 }
