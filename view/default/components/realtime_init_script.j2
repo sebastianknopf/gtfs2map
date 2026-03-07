@@ -2,29 +2,29 @@
 <script>
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function (e) {
-        {% if GTFS_REALTIME_METHOD == 'http' %}
-            {% if GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL is not none %}
-            initializeHttpRealtimeUpdates('{{ GTFS_REALTIME_HTTP_TRIP_UPDATES_URL }}', null, '{{ GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL }}', routeVehiclePositionsCallback, routeIds);
-            {% endif %}
-            {% if GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL is not none %}
-            initializeHttpServiceAlerts('{{ GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL }}', routeIds, routeServiceAlertsCallback);
-            {% endif %}
-        {% elif GTFS_REALTIME_METHOD == 'mqtt' %}
-            {% if GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC is not none or GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC is not none or GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC is not none %}
+        {% if GTFS_REALTIME_TRIP_UPDATES_METHOD == 'http' or GTFS_REALTIME_VEHICLE_POSITIONS_METHOD == 'http' or GTFS_REALTIME_SERVICE_ALERTS_METHOD == 'http' %}
+            initializeHttpRealtimeUpdates(
+                {%if GTFS_REALTIME_TRIP_UPDATES_METHOD == 'http' %}'{{ GTFS_REALTIME_HTTP_TRIP_UPDATES_URL }}'{% else %}null{% endif %}, 
+                null, 
+                {%if GTFS_REALTIME_VEHICLE_POSITIONS_METHOD == 'http' %}'{{ GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL }}'{% else %}null{% endif %}, 
+                routeVehiclePositionsCallback, 
+                routeIds
+            );
+        {% endif %}
+        {% if GTFS_REALTIME_TRIP_UPDATES_METHOD == 'mqtt' or GTFS_REALTIME_VEHICLE_POSITIONS_METHOD == 'mqtt' or GTFS_REALTIME_SERVICE_ALERTS_METHOD == 'mqtt' %}
             initializeMqttRealtimeUpdates(
                 '{{ GTFS_REALTIME_MQTT_BROKER_HOST}}',
                 {{ GTFS_REALTIME_MQTT_BROKER_PORT}},
                 '{{ GTFS_REALTIME_MQTT_BROKER_USERNAME }}',
                 '{{ GTFS_REALTIME_MQTT_BROKER_PASSWORD }}',                
-                {% if GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC is not none %}'{{ GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC }}'{% else %}null{% endif %},
+                {% if GTFS_REALTIME_TRIP_UPDATES_METHOD == 'mqtt' %}'{{ GTFS_REALTIME_MQTT_TRIP_UPDATES_TOPIC }}'{% else %}null{% endif %},
                 null,
-                {% if GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC is not none %}'{{ GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC }}'{% else %}null{% endif %},
+                {% if GTFS_REALTIME_VEHICLE_POSITIONS_METHOD == 'mqtt' %}'{{ GTFS_REALTIME_MQTT_VEHICLE_POSITIONS_TOPIC }}'{% else %}null{% endif %},
                 routeVehiclePositionsCallback,
-                {% if GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC is not none %}'{{ GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC }}'{% else %}null{% endif %},
+                {% if GTFS_REALTIME_SERVICE_ALERTS_METHOD == 'mqtt' %}'{{ GTFS_REALTIME_MQTT_SERVICE_ALERTS_TOPIC }}'{% else %}null{% endif %},
                 routeServiceAlertsCallback,
                 routeIds
             );
-            {% endif %}
         {% endif %}
     });
 }

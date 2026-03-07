@@ -477,6 +477,30 @@ function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBroke
     }
 }
 
+async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
+    if (!appRealtimeUpdateIntervalObject) {
+        const updateInterval = 10 * 1000;
+
+        if (tripUpdatesUrl != null) {
+            await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
+        }
+        
+        if (vehiclePositionsUrl != null) {
+            await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
+        }
+
+        appRealtimeUpdateIntervalObject = setInterval(async () => {
+            if (tripUpdatesUrl != null) {
+                await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
+            }
+            
+            if (vehiclePositionsUrl != null) {
+                await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
+            }
+        }, updateInterval);
+    }
+}
+
 async function fetchGtfsRealtimeData(url, headers) {
     if (!url) {
         return null;
@@ -545,20 +569,6 @@ async function updateVehiclePositions(url, routeIds, vehiclePositionsCallback) {
 
 function findVehiclePosition(vehicleId) {
     return window.vehiclePositions.find(p => p.vehicle.vehicle.id == vehicleId);
-}
-
-async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
-    if (!appRealtimeUpdateIntervalObject) {
-        const updateInterval = 10 * 1000;
-
-        await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
-        await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
-
-        appRealtimeUpdateIntervalObject = setInterval(async () => {
-            await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
-            await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
-        }, updateInterval);
-    }
 }
 
 function filterServiceAlerts(alerts, routeId) {
