@@ -1,4 +1,4 @@
-{% macro create(static_assets_dir, template_color, route_ids = none) %}
+{% macro create(static_assets_dir, template_color, allow_unmatched_vehicles = false, route_ids = none) %}
 <script>
 // create initial map object and additional controls
 const map = new maplibregl.Map({
@@ -134,8 +134,8 @@ function routeVehiclePositionsCallback(positions) {
     }
 
     // update all vehicle positions with their latest incoming data    
-    {% if APP_UNMATCHED_VEHICLES_ENABLED == false or route_ids is not none %}
-    positions = filterVehiclePositions(positions, routeIds);
+    {% if allow_unmatched_vehicles == false or route_ids is not none %}
+    positions = filterVehiclePositions(positions, routeIds, {% if allow_unmatched_vehicles %}true{% else %}false{% endif %});
     {% endif %}
 
     positions.forEach(p => {

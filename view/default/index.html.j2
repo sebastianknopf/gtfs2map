@@ -54,6 +54,6 @@ function routeServiceAlertsCallback(routeServiceAlertsMap) {
 {% endif %}
 </script>
 {% import "components/map.j2" as map %}
-{{ map.create('static', APP_TEMPLATE_COLOR) }}
+{{ map.create('static', APP_TEMPLATE_COLOR, APP_UNMATCHED_VEHICLES_ENABLED) }}
 {% include "components/realtime_init_script.j2" %}
 {% endblock %}
