@@ -551,10 +551,10 @@ function findTripUpdate(vehicleId) {
     return window.tripUpdates.find(u => u.trip_update.vehicle != null && u.trip_update.vehicle.id == vehicleId);
 }
 
-function filterVehiclePositions(positions, routeIds) {
+function filterVehiclePositions(positions, routeIds, allowUnmatchedVehicles = true) {
     return positions.filter(p => {
         if (p.vehicle.trip == null) {
-            return false;
+            return allowUnmatchedVehicles;
         }
 
         return p.vehicle.trip.route_id != null && routeIds.includes(p.vehicle.trip.route_id);
