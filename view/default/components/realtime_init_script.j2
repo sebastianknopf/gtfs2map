@@ -8,6 +8,8 @@ if (document.readyState === 'loading') {
                 null, 
                 {%if GTFS_REALTIME_VEHICLE_POSITIONS_METHOD == 'http' %}'{{ GTFS_REALTIME_HTTP_VEHICLE_POSITIONS_URL }}'{% else %}null{% endif %}, 
                 routeVehiclePositionsCallback, 
+                {%if GTFS_REALTIME_SERVICE_ALERTS_METHOD == 'http' %}'{{ GTFS_REALTIME_HTTP_SERVICE_ALERTS_URL }}'{% else %}null{% endif %}, 
+                routeServiceAlertsCallback,
                 routeIds
             );
         {% endif %}

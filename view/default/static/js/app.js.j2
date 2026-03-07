@@ -11,10 +11,15 @@ let appRealtimeUpdateIntervalObject;
 let appServiceAlertsUpdateIntervalObject;
 let appVehicleInfoLastUpdateTimeoutObject;
 let appZoomLevel = 0;
+let appPollingIntervalSeconds = 10 * 1000;
 
 function setAppZoomLevel(zoom) {
     appZoomLevel = zoom;
     applyVisualAppStyles();
+}
+
+function setAppPollingIntervalSeconds(interval) {
+    appPollingIntervalSeconds = interval;
 }
 
 function applyVisualAppStyles() {
@@ -184,11 +189,6 @@ function getGeoJsonBounds(geojson) {
     });
 
     return bounds;
-}
-
-function getGeoJsonCenter(geojson) {
-    const bounds = getGeoJsonBounds(geojson);
-    return bounds.getCenter();
 }
 
 function getRouteProperties(routeId) {
@@ -477,10 +477,8 @@ function initializeMqttRealtimeUpdates(mqttBrokerHost, mqttBrokerPort, mqttBroke
     }
 }
 
-async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, routeIds) {
+async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback, vehiclePositionsUrl, vehiclePositionsCallback, serviceAlertsUrl, serviceAlertsCallback, routeIds) {
     if (!appRealtimeUpdateIntervalObject) {
-        const updateInterval = 10 * 1000;
-
         if (tripUpdatesUrl != null) {
             await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
         }
@@ -489,15 +487,23 @@ async function initializeHttpRealtimeUpdates(tripUpdatesUrl, tripUpdatesCallback
             await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
         }
 
+        if (serviceAlertsUrl != null) {
+            await updateServiceAlerts(serviceAlertsUrl, routeIds, serviceAlertsCallback);
+        }
+
         appRealtimeUpdateIntervalObject = setInterval(async () => {
             if (tripUpdatesUrl != null) {
                 await updateTripUpdates(tripUpdatesUrl, routeIds, tripUpdatesCallback);
             }
-            
+
             if (vehiclePositionsUrl != null) {
                 await updateVehiclePositions(vehiclePositionsUrl, routeIds, vehiclePositionsCallback);
             }
-        }, updateInterval);
+
+            if (serviceAlertsUrl != null) {
+                await updateServiceAlerts(serviceAlertsUrl, routeIds, serviceAlertsCallback);
+            }
+        }, appPollingIntervalSeconds);
     }
 }
 
@@ -601,17 +607,5 @@ async function updateServiceAlerts(url, routeIds, serviceAlertsCallback) {
 
     if (serviceAlertsCallback) {
         serviceAlertsCallback(routeServiceAlertsMap);
-    }
-}
-
-function initializeHttpServiceAlerts(url, routeIds, serviceAlertsCallback) {
-    if (!appServiceAlertsUpdateIntervalObject) {
-        const updateInterval = 60 * 1000;
-
-        updateServiceAlerts(url, routeIds, serviceAlertsCallback);
-
-        appServiceAlertsUpdateIntervalObject = setInterval(() => {
-            updateServiceAlerts(url, routeIds, serviceAlertsCallback);
-        }, updateInterval);
     }
 }
